@@ -1,12 +1,13 @@
-# FHE Benchmarking template
+# FHE Benchmarking Suite - Fetch-by-Similarity Workload
 
-## Cloning the workload
+This repository contains a reference implementation of the
+Fetch-by-cosine-similarity workload of the FHE benchmarking suite of
+[HomomorphicEncrypption.org].
 
-```console
-git clone https://github.com/andreea-alexandru/fhe-bench
-cd fhe-bench
-git checkout empty-harness
-```
+Submitters need to clone/fork this reposiroty, then replace the content of
+the `submission` subdirectory by their own implementation.
+They also may need to changes or replace the script `scripts/build_task.sh`
+to account for dependencies and build environment for their submission.
 
 ## Dependencies
 
@@ -17,18 +18,38 @@ source ./virtualenv/bin/activate
 pip3 install -r requirements.txt
 ```
 
-In this empty harness, no other dependency is needed.
+This implementation requires OpenFHE v1.3.x, the default build environment
+assumes that the correct version of OpenFHE is installed locally at
+`/third-party/openfhe`.
 
-## Running the empty workload
+### Installing OpenFHE
+
+The installation steps for OpenFHE are described [here](https://openfhe-development.readthedocs.io/en/latest/sphinx_rsts/intro/installation/installation.html).  
+
+If OpenFHE is installed at a different location, that location should be
+specified using the `-CMAKE_PREFIX_PATH` variable in `build_task.sh`.
+(In the case of a system-wide installation at `/usr/local/`, unset the
+`-CMAKE_PREFIX_PATH` variable.)
+
+For users who want to do a local fresh install, they should run `get_openfhe.sh`,
+which is designed to install the specified version of OpenFHE at the
+`third-party` subdirectory in the current directory.
+By default, `build_task.sh` looks for the library at this location. See more
+instructions in `submission/CMakeLists.txt` if `build_task.sh` does not succeed.
+
+```console
+./scripts/get_openfhe.sh
+```
+
+## Running the fetch-by-similarity workload
 
 An example run is provided below.
 
 ```console
 $ python3 harness/run_submission.py -h
-usage: run_submission.py [-h] [--num_runs NUM_RUNS] [--seed SEED] [--clrtxt CLRTXT]
-                         {0,1,2,3}
+usage: run_submission.py [-h] [--num_runs NUM_RUNS] [--seed SEED] [--count_only] {0,1,2,3}
 
-Run the [workload] FHE benchmark.
+Run the fetch-by-similarity FHE benchmark.
 
 positional arguments:
   {0,1,2,3}            Instance size (0-toy/1-small/2-medium/3-large)
@@ -37,44 +58,69 @@ options:
   -h, --help           show this help message and exit
   --num_runs NUM_RUNS  Number of times to run steps 4-9 (default: 1)
   --seed SEED          Random seed for dataset and query generation
-  --clrtxt CLRTXT      Specify with 1 if to rerun the cleartext computation
+  --count_only         Only count # of matches, do not return payloads
+$
+$ python ./harness/run_submission.py 0 --seed 12345 --num_runs 2
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- FOUND PACKAGE OpenFHE
+-- OpenFHE Version: 1.3.0
+-- OpenFHE installed as shared libraries: ON
+-- OpenFHE include files location: /usr/local/include/openfhe
+-- OpenFHE lib files location: /usr/local/lib
+-- OpenFHE Native Backend size: 64
+-- Configuring done (0.7s)
+-- Generating done (0.0s)
+-- Build files have been written to: [...]/fetch-by-similarity/submission/build
+[  4%] Building CXX object CMakeFiles/client_encode_encrypt_db.dir/src/client_encode_encrypt_db.cpp.o
+[...]
+[100%] Built target client_encode_encrypt_db
 
-$ python3 ./harness/run_submission.py 2 --seed 3 --num_runs 2
-
-[harness] Running submission for medium dataset
-18:57:39 [harness] 1: Dataset generation completed (elapsed: 0.0366s)
-18:57:39 [harness] 2: Dataset preprocessing completed (elapsed: 0.0113s)
-18:57:39 [harness] 3: Key Generation completed (elapsed: 0.0116s)
-18:57:39 [harness] 4: Dataset encoding and encryption completed (elapsed: 0.0103s)
-         [harness] Public and evaluation keys size: 0.0B
-         [harness] Encrypted database size: 0.0B
-18:57:39 [harness] 5: (Encrypted) dataset preprocessing completed (elapsed: 0.0095s)
+[harness] Running submission for toy dataset
+          returning matching payloads
+23:23:38 [harness] 1: Dataset generation completed (elapsed: 0.1021s)
+23:23:38 [harness] 2: Dataset preprocessing completed (elapsed: 0.0023s)
+23:23:38 [harness] 3: Key Generation completed (elapsed: 0.1167s)
+23:23:39 [harness] 4: Dataset encoding and encryption completed (elapsed: 1.0903s)
+         [harness] Public and evaluation keys size: 30.3M
+         [harness] Encrypted database size: 90.3M
+23:23:39 [harness] 5: Encrypted dataset preprocessing completed (elapsed: 0.0051s)
 
          [harness] Run 1 of 2
-18:57:39 [harness] 6: Query generation completed (elapsed: 0.0094s)
-18:57:39 [harness] 7: Query preprocessing completed (elapsed: 0.0091s)
-18:57:39 [harness] 8: Query encryption completed (elapsed: 0.0088s)
-         [harness] Encrypted query size: 0.0B
-18:57:39 [harness] 9: Encrypted computation completed (elapsed: 0.0095s)
-         [harness] Encrypted results size: 0.0B
-18:57:39 [harness] 10: Result decryption completed (elapsed: 0.0094s)
-18:57:39 [harness] 11: Result postprocessing completed (elapsed: 0.0196s)
-[harness] PASS  (expected=0.0, got=0.0)
-[total latency] 0.1451s
+23:23:40 [harness] 6: Query generation completed (elapsed: 0.096s)
+23:23:40 [harness] 7: Query preprocessing completed (elapsed: 0.0022s)
+23:23:40 [harness] 8: Query encryption completed (elapsed: 0.0164s)
+         [harness] Encrypted query size: 389.1K
+23:23:40 [server] 0: Loading keys completed
+23:23:43 [server] 1: Matrix-vector product completed (elapsed 3s)
+23:23:43 [server] 2: Compare to threshold completed
+23:23:43 [server] 3: Running sums completed
+23:23:45 [server] 4: Output compression completed (elapsed 1s)
+23:23:45 [harness] 9: Encrypted computation completed (elapsed: 5.4183s)
+23:23:45 [harness] 10: Result decryption and postprocessing completed (elapsed: 0.0201s)
+         [harness] PASS (All 18 payload vectors match)
+[total latency] 6.8694s
 
          [harness] Run 2 of 2
-18:57:40 [harness] 6: Query generation completed (elapsed: 0.0531s)
-18:57:40 [harness] 7: Query preprocessing completed (elapsed: 0.0094s)
-18:57:40 [harness] 8: Query encryption completed (elapsed: 0.0094s)
-         [harness] Encrypted query size: 0.0B
-18:57:40 [harness] 9: Encrypted computation completed (elapsed: 0.0099s)
-         [harness] Encrypted results size: 0.0B
-18:57:40 [harness] 10: Result decryption completed (elapsed: 0.0091s)
-18:57:40 [harness] 11: Result postprocessing completed (elapsed: 0.0195s)
-[harness] PASS  (expected=0.0, got=0.0)
-[total latency] 0.1898s
+23:23:45 [harness] 6: Query generation completed (elapsed: 0.4324s)
+23:23:45 [harness] 7: Query preprocessing completed (elapsed: 0.0033s)
+23:23:46 [harness] 8: Query encryption completed (elapsed: 0.035s)
+         [harness] Encrypted query size: 389.1K
+23:23:46 [server] 0: Loading keys completed
+23:23:53 [server] 1: Matrix-vector product completed (elapsed 7s)
+23:23:53 [server] 2: Compare to threshold completed
+23:23:53 [server] 3: Running sums completed
+23:23:55 [server] 4: Output compression completed (elapsed 1s)
+23:23:55 [harness] 9: Encrypted computation completed (elapsed: 9.5139s)
+23:23:55 [harness] 10: Result decryption and postprocessing completed (elapsed: 0.0198s)
+         [harness] PASS (All 11 payload vectors match)
+[total latency] 11.3208s
 
-All steps completed for the medium dataset!
+All steps completed for the toy dataset!
 ```
 
 After finishing the run, deactivate the virtual environment.
@@ -85,44 +131,31 @@ deactivate
 ## Directory structure
 
 ```bash
-Each submission to the workload in the FHE benchmarking should have the following directory structure:
 [root] /
-| ├─datasets/       # Holds cleartext data 
-| |  ├─ toy/        # each instance-size in in a separate subdirectory
-| |  ├─ small/
-| |  ├─ medium/
-| |  ├─ large/
-| ├─docs/           # Optional documentation (beyond the top-level README.md)
-| ├─harness/        # Scripts to generate data, run workload, check results
-| ├─build/          # Handle installing dependencies and building the project
-| ├─submission/     # The implementation, this is what the submitters modify
-| |  └─ README.md   # likely also a src/, include/ subdirectories, CMakeLists.txt, etc.
-| ├─io/             # Directory to hold the I/O between client & server parts
-| |  ├─ toy/        # The reference implementation has subdirectories
-| |     ├─ public_keys/             # holds the public evaluation keys
-| |     ├─ ciphertexts_download/    # holds the ciphertexts to be downloaded by the client
-| |     ├─ ciphertexts_upload/      # holds the ciphertexts (or other data except keys) to be uploaded by the client    
-| |     ├─ intermediate/            # internal information to be passed around the functions
-| |     └─ secret_key/              # holds the secret key
-| |  ├─ small/
-| |     ...
-| |  ├─ medium/
-| |     ...
-| |  ├─ large/
-| |     ...
-| ├─measurements/   # Holds json files with the results for each run
-| |  ├─ toy/        # each instance-size in in a separate subdirectory
-| |  ├─ small/
-| |  ├─ medium/
-| |  ├─ large/
+├─ README.md     # This file
+├─ LICENSE.md    # Software license (Apache v2)
+├─ harness/      # Scripts to drive the workload implementation
+|   ├─ run_submission.py
+|   ├─ cleartext_impl.py
+|   ├─ verify_result.py
+|   └─ [...]
+├─ datasets/     # The harness scripts create and populate this directory
+├─ io/           # This directory is used for client<->server communication
+├─ measurements/ # Holds logs with performance numbers
+├─ scripts/      # Helper scripts for dependencies and build system
+└─ submission/   # This is where the workload implementation lives
+    ├─ README.md   # Submission documentation (mandatory)
+    ├─ LICENSE.md  # Optional software license (if different from Apache v2)
+    ├─ docs/       # Optional: additional documentation
+    └─ [...]
 ```
+Submitters must overwrite the contents of the `scripts` and `submissions`
+subdirectories.
 
 ## Description of stages
 
-A submitter can edit any of the `client_*` / `server_*` sources in `/submission`. 
+A submitter should edit the `client_*` / `server_*` sources in `/submission`. 
 Moreover, for the particular parameters related to a workload, the submitter can modify the params files.
-If the current description of the files are inaccurate, the stage names and argument in `run_submission`
-can be also modified.
 
 The current stages are the following, targeted to a client-server scenario.
 The order in which they are happening in `run_submission` assumes an initialization step which is 
@@ -146,4 +179,5 @@ Each file can take as argument the test case size.
 The outer python script measures the runtime of each stage.
 The current stage separation structure requires reading and writing to files more times than minimally necessary.
 For a more granular runtime measuring, which would account for the extra overhead described above, we encourage
-submitters to separate and print in a log the individual times for reads/writes and computations inside each stage. 
+submitters to separate and print in a log the individual times for reads/writes and computations inside each stage.
+

@@ -1,4 +1,4 @@
-## Workload
---------------------------------------
+# Workload implementation - fetch by similarity
 
-[Placeholder for description of method in a more complex workload.]
+More details about this implementation are provided in the PDF file
+in this directory.
