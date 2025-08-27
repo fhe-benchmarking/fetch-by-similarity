@@ -52,7 +52,9 @@ link_directories( ${OPENMP_LIBRARIES} )
 # set(CMAKE_BUILD_RPATH "${OpenFHE_LIBDIR}") 
 # set(CMAKE_INSTALL_RPATH "${OpenFHE_LIBDIR}") 
 # set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-add_link_options(-Wl,--no-as-needed)
+if (NOT APPLE)
+    add_link_options(-Wl,--no-as-needed)
+endif()
 
 # These should take care of setting the correct LD path without manually setting LD_LIBRARY_PATH. 
 # But if a shared library or symbol lookup error occurs, you need to set the LD_LIBRARY_PATH environment 

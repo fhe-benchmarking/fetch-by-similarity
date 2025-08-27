@@ -4,7 +4,7 @@ This repository contains a reference implementation of the
 Fetch-by-cosine-similarity workload of the FHE benchmarking suite of
 [HomomorphicEncrypption.org].
 
-Submitters need to clone/fork this reposiroty, then replace the content of
+Submitters need to clone/fork this repository, then replace the content of
 the `submission` subdirectory by their own implementation.
 They also may need to changes or replace the script `scripts/build_task.sh`
 to account for dependencies and build environment for their submission.

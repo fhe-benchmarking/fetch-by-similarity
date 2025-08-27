@@ -116,7 +116,7 @@ std::vector<std::vector<std::vector<double> > > transpose_matrix(
 /// since last call in seconds (or 0 if this is the first call).
 inline std::tuple<std::string,int64_t> getCurrentTimeFormatted() {
     using namespace std::chrono;
-    static _V2::system_clock::time_point previous;
+    static std::chrono::system_clock::time_point previous;
     auto now = system_clock::now();
     auto now_c = system_clock::to_time_t(now);
 
