@@ -1,4 +1,3 @@
-## Workload
---------------------------------------
+# Workload fetch-by-similarity
 
-[Placeholder for description of method in a more complex workload.]
+This is a placeholder for description of method in a real implementation

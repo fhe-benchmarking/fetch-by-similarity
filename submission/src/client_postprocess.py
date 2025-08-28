@@ -1,13 +1,25 @@
 """
-Dummy output for the workload, not accounting for test size.
+Dummy output for the workload
 """
 
+import argparse
 from pathlib import Path
 
-def main():
+def instance_name(size):
+    """Return the string name of the instance size."""
+    if size > 3:
+        return "unknown"
+    names = ["toy", "small", "medium", "large"]
+    return names[size]
 
-    OUT_PATH = Path("io/result.txt")
-    OUT_PATH.write_text(f"0\n", encoding="utf-8")
+def main():
+    parser = argparse.ArgumentParser(description='Create a results file.')
+    parser.add_argument('size', type=int, help='Instance size (0-3)')
+    args = parser.parse_args()
+    size = args.size
+
+    result = Path("io") / instance_name(size) / "results.bin"
+    result.touch()
 
 if __name__ == "__main__":
     main()

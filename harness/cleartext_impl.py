@@ -1,13 +1,19 @@
 """
-Dummy cleartext result, not accounting for test size.
+Dummy cleartext result
 """
-
-from pathlib import Path
+import argparse
+from params import InstanceParams
 
 def main():
+    # Parse arguments using argparse
+    parser = argparse.ArgumentParser(description='Create a results file.')
+    parser.add_argument('size', type=int, help='Instance size (0-3)')
+    args = parser.parse_args()    
+    size = args.size
 
-    OUT_PATH = Path("datasets/expected.txt")
-    OUT_PATH.write_text(f"0\n", encoding="utf-8")
+    # Use params.py to get instance parameters
+    expected = InstanceParams(size).datadir() / "expected.bin"
+    expected.touch()
 
 if __name__ == "__main__":
     main()
