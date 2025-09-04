@@ -1,0 +1,32 @@
+[project]
+name = "fetch-by-similarity"
+version = "0.1.0"
+description = "FHE benchmarking suite for Fetch-by-Similarity workload using Lattica"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=2.0.1,<3.0.0",
+    "lattica-query",
+    "torch==2.5.1+cpu",
+]
+
+[tool.uv.sources]
+# Use the same editable dependencies as the client project
+lattica-common = { path = "../client/lattica_common_src", editable = true }
+lattica-fhe-core = { path = "../lattice-toolkit/fhe_core/binding", editable = true }
+lattica-query = { path = "../client/lattica_query_src", editable = true }
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv]
+package = false
+
+[project.scripts]
+run-submission = "harness.run_submission:main"
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
