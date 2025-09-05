@@ -3,12 +3,8 @@
 server_encrypted_compute.py - Perform homomorphic similarity search
 """
 import sys
-import os
 
-# Add lib directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib'))
-
-from server_timer import ServerTimer
+from lib.server_timer import ServerTimer
 # from lattica_client import LatticaClient
 
 def main():

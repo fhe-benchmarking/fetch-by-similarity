@@ -6,8 +6,7 @@ import sys
 import os
 import numpy as np
 
-# Add lib directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib'))
+# No path manipulation needed with proper package structure
 
 # from lattica_client import LatticaClient
 

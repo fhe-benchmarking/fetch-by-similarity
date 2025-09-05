@@ -22,7 +22,11 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [tool.uv]
-package = false
+package = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["submission", "submission.*", "harness"]
 
 [project.scripts]
 run-submission = "harness.run_submission:main"

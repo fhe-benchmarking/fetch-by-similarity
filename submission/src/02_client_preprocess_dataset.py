@@ -3,11 +3,9 @@
 client_preprocess_dataset.py - Merge db.bin and payloads.bin into combined_db.bin
 """
 import sys
-import os
 import numpy as np
 
-# Add lib directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib'))
+from harness.params import InstanceParams, PAYLOAD_DIM
 
 def main():
     # Parse arguments
@@ -19,8 +17,6 @@ def main():
     dataset_dir = f"datasets/{instance_name}"
     
     # Get instance parameters for dimensions
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../harness'))
-    from params import InstanceParams, PAYLOAD_DIM
     params = InstanceParams(size)
     db_size = params.get_db_size()
     record_dim = params.get_record_dim()

@@ -6,12 +6,6 @@ import sys
 import os
 import numpy as np
 
-# Add lib directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib'))
-
-# Add client library to path for Lattica imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../client/lattica_query_src'))
-
 # from lattica_client import LatticaClient
 
 def main():

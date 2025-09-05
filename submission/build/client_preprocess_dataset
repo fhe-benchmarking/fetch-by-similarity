@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec uv run python submission/src/02_client_preprocess_dataset.py "$@"

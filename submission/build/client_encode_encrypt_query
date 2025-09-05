@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec uv run python submission/src/08_client_encode_encrypt_query.py "$@"

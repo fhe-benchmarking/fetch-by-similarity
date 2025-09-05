@@ -5,9 +5,6 @@ client_key_generation.py - Generate and save FHE keys
 import sys
 import os
 
-# Add lib directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib'))
-
 from lattica_query.lattica_query_client import QueryClient
 from lattica_query.auth import get_demo_token
 

@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec uv run python submission/src/09_server_encrypted_compute.py "$@"

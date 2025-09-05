@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec uv run python submission/src/03_client_key_generation.py "$@"
