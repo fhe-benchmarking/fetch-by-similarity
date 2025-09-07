@@ -7,6 +7,7 @@ import os
 
 from lattica_query.lattica_query_client import QueryClient
 from lattica_query.auth import get_demo_token
+from lib.constants import MODEL_ID
 
 def main():
     # Parse arguments
@@ -19,10 +20,8 @@ def main():
     key_dir = f"io/{instance_name}/keys"
     os.makedirs(key_dir, exist_ok=True)
     
-    # Get demo token - using sketchToNumber temporarily until similarity model is deployed
-    # TODO: Change to "similarity" once the model is deployed to Lattica cloud
-    model_id = "4d15ae30-18e4-43e9-83d0-2d5ca4f7a0a2"  # Temporary - using existing model for key generation
-    token = get_demo_token(model_id)
+    # Get demo token using shared model ID constant
+    token = get_demo_token(MODEL_ID)
     
     # Initialize QueryClient
     client = QueryClient(token)
@@ -59,7 +58,15 @@ def main():
     with open(context_path, "wb") as f:
         f.write(context)
     
+    # Save token for use in later steps (step 5 and step 9)
+    server_dir = f"io/{instance_name}/server"
+    os.makedirs(server_dir, exist_ok=True)
+    token_path = f"{server_dir}/token.txt"
+    with open(token_path, "w") as f:
+        f.write(token)
+    
     print(f"Keys generated and saved to {key_dir}/")
+    print(f"Token saved to {token_path}")
     
 if __name__ == "__main__":
     main()
