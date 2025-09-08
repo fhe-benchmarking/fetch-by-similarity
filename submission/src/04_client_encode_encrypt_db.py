@@ -6,6 +6,8 @@ import sys
 import os
 import numpy as np
 
+from lib.server_logger import server_print
+
 # from lattica_client import LatticaClient
 
 def main():
@@ -22,7 +24,7 @@ def main():
     
     # Load the combined database
     db = np.fromfile(f"{dataset_dir}/combined_db.bin", dtype=np.float32)
-    print(f"Loaded {len(db)} float32 values from combined database")
+    server_print(f"Loaded {len(db)} float32 values from combined database")
     
     # Load context and secret key from step 3
     with open(f"{key_dir}/context.bin", "rb") as f:
@@ -61,8 +63,8 @@ def main():
     with open(encrypted_db_path, "wb") as f:
         f.write(encrypted_data)
     
-    print(f"Encrypted database saved to {encrypted_db_path}")
-    print(f"Encrypted size: {len(encrypted_data)} bytes")
+    server_print(f"Encrypted database saved to {encrypted_db_path}")
+    server_print(f"Encrypted size: {len(encrypted_data)} bytes")
     
 if __name__ == "__main__":
     main()

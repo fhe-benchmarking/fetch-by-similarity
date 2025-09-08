@@ -8,6 +8,7 @@ import os
 from lattica_query.lattica_query_client import QueryClient
 from lattica_query.auth import get_demo_token
 from lib.constants import MODEL_ID
+from lib.server_logger import server_print
 
 def main():
     # Parse arguments
@@ -65,8 +66,8 @@ def main():
     with open(token_path, "w") as f:
         f.write(token)
     
-    print(f"Keys generated and saved to {key_dir}/")
-    print(f"Token saved to {token_path}")
+    server_print(f"Keys generated and saved to {key_dir}/")
+    server_print(f"Token saved to {token_path}")
     
 if __name__ == "__main__":
     main()

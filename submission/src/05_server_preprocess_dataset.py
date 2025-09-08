@@ -8,6 +8,7 @@ import os
 from lib.constants import MODEL_ID
 from lib.similarity_upload import SimilarityUploader
 from lattica_query.worker_api import LatticaWorkerAPI
+from lib.server_logger import server_print
 
 def main():
     # Parse arguments
@@ -32,17 +33,17 @@ def main():
     if not os.path.exists(db_path):
         raise FileNotFoundError(f"Encrypted database not found: {db_path}. Make sure step 4 (database encryption) was run first.")
     
-    print(f"Uploading encrypted database from {db_path}...")
+    server_print(f"Uploading encrypted database from {db_path}...")
     
     uploader = SimilarityUploader(token)
     result = uploader.upload_database(db_path, MODEL_ID)
     
-    print(f"Database upload successful!")
-    print(f"Filename: {result.get('filename')}")
-    print(f"S3 Key: {result.get('s3Key')}")
+    server_print(f"Database upload successful!")
+    server_print(f"Filename: {result.get('filename')}")
+    server_print(f"S3 Key: {result.get('s3Key')}")
     
     # Load the database into the worker
-    print("Loading database into worker...")
+    server_print("Loading database into worker...")
     worker_api = LatticaWorkerAPI(token)
     
     # Call load_similarity_database action with the filename
@@ -53,7 +54,7 @@ def main():
         with_polling=True
     )
     
-    print("Database loaded into worker successfully!")
+    server_print("Database loaded into worker successfully!")
     
 if __name__ == "__main__":
     main()

@@ -5,6 +5,8 @@ client_preprocess_dataset.py - Merge db.bin and payloads.bin into combined_db.bi
 import sys
 import numpy as np
 
+from lib.server_logger import server_print
+
 from harness.params import InstanceParams, PAYLOAD_DIM
 
 def main():
@@ -43,8 +45,8 @@ def main():
     # Save combined database
     combined.tofile(f"{dataset_dir}/combined_db.bin")
     
-    print(f"Merged {db_size} records into {dataset_dir}/combined_db.bin")
-    print(f"Record format: {record_dim} vector dims + {PAYLOAD_DIM+1} payload values")
+    server_print(f"Merged {db_size} records into {dataset_dir}/combined_db.bin")
+    server_print(f"Record format: {record_dim} vector dims + {PAYLOAD_DIM+1} payload values")
     
 if __name__ == "__main__":
     main()

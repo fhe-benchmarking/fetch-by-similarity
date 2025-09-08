@@ -3,6 +3,7 @@
 server_timer.py - Server-side timing and logging utility for FHE benchmark
 """
 import time
+import os
 from datetime import datetime
 
 
@@ -14,10 +15,17 @@ class ServerTimer:
     HH:MM:SS [server] <step_number>: <description> completed (elapsed <X>s)
     """
     
+    # ANSI color codes
+    GREEN = '\033[92m'
+    BOLD = '\033[1m'
+    RESET = '\033[0m'
+    
     def __init__(self):
         """Initialize the timer."""
         self.last_time = time.time()
         self.start_time = self.last_time
+        # Check if we're in a terminal that supports colors
+        self.use_colors = os.isatty(1)  # stdout is a terminal
     
     def log_step(self, num, name):
         """
@@ -31,10 +39,16 @@ class ServerTimer:
         elapsed = current - self.last_time
         timestamp = datetime.now().strftime("%H:%M:%S")
         
-        if elapsed > 0:
-            print(f"{timestamp} [server] {num}: {name} completed (elapsed {int(elapsed)}s)")
+        # Format server tag with color for better visibility
+        if self.use_colors:
+            server_tag = f"{self.GREEN}{self.BOLD}[server]{self.RESET}"
         else:
-            print(f"{timestamp} [server] {num}: {name} completed")
+            server_tag = "[server]"
+        
+        if elapsed > 0:
+            print(f"{timestamp} {server_tag} {num}: {name} completed (elapsed {int(elapsed)}s)")
+        else:
+            print(f"{timestamp} {server_tag} {num}: {name} completed")
         
         # Ensure output is immediately visible
         import sys
