@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 """
-client_encode_encrypt_db.py - Encrypt the database
+client_encode_encrypt_db.py - Encrypt and upload the database
 """
 import sys
 import os
 import numpy as np
 
 from lib.server_logger import server_print
+from lib.server_timer import ServerTimer
 from lib.constants import MODEL_ID
 from lib.similarity_upload import SimilarityUploader
 
 def main():
+    # Initialize timer for logging (at the very start to capture all operations)
+    timer = ServerTimer()
+    
     # Parse arguments
     size = int(sys.argv[1])
     
@@ -91,6 +95,9 @@ def main():
     server_print(f"Encrypted database saved to {encrypted_db_path}")
     server_print(f"Encrypted size: {len(encrypted_data)} bytes")
     
+    # Log encryption phase completion
+    timer.log_step(0, "Database encryption")
+    
     # Upload encrypted database to Lattica
     token_path = f"{server_dir}/token.txt"
     if not os.path.exists(token_path):
@@ -105,15 +112,10 @@ def main():
     result = uploader.upload_database(encrypted_db_path, MODEL_ID)
     
     server_print(f"Database upload successful!")
-    server_print(f"Filename: {result.get('filename')}")
     server_print(f"S3 Key: {result.get('s3Key')}")
     
-    # Save upload result for reference in later steps
-    upload_result_path = f"{server_dir}/upload_result.json"
-    import json
-    with open(upload_result_path, "w") as f:
-        json.dump(result, f)
-    server_print(f"Upload result saved to {upload_result_path}")
+    # Log upload phase completion
+    timer.log_step(1, "Database upload")
     
 if __name__ == "__main__":
     main()

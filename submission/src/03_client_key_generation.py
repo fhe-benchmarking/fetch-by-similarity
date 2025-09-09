@@ -35,8 +35,6 @@ def main():
     with open(homseq_path, "wb") as f:
         f.write(homseq)
     
-    # TODO print pk size in client repo
-
     # Save secret key for later use in decryption (following Lattica client standard format)
     import base64
     import json

@@ -46,7 +46,7 @@ class ServerTimer:
             server_tag = "[server]"
         
         if elapsed > 0:
-            print(f"{timestamp} {server_tag} {num}: {name} completed (elapsed {int(elapsed)}s)")
+            print(f"{timestamp} {server_tag} {num}: {name} completed (elapsed {elapsed:.3f}s)")
         else:
             print(f"{timestamp} {server_tag} {num}: {name} completed")
         
