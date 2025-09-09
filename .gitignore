@@ -3,7 +3,7 @@ io/
 datasets/
 third_party/
 measurements/
-harness/__pycache__/
+__pycache__/
 
 # Prerequisites
 *.d
