@@ -29,7 +29,9 @@ class SimilarityUploader:
         expected_filename = token_id
         
         url = f"{http_settings.get_be_url()}/api/files/upload_custom_encrypted_data"
-        # todo: check if we need modelId here. probably not
+        # modelId is required by the backend to:
+        #  - Verifies the model exists in the database, and its status is ACTIVE or UPLOADED
+        #  - Checks if the token has permission to access the model (for private models)
         params = {'modelId': model_id}
         
         headers = {
@@ -37,8 +39,8 @@ class SimilarityUploader:
             'Content-Type': 'application/octet-stream',
         }
 
-        # todo: check if we still need this, as the filename is only the token id
         # Add client info to headers
+        # This allows the server to block access from outdated clients
         if self.module_name:
             headers['X-Client-Module'] = self.module_name
         if self.module_version:
