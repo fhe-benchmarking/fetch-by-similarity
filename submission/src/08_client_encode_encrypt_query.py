@@ -6,10 +6,6 @@ import sys
 import os
 import numpy as np
 
-# No path manipulation needed with proper package structure
-
-# from lattica_client import LatticaClient
-
 def main():
     # Parse arguments
     size = int(sys.argv[1])

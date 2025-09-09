@@ -6,9 +6,7 @@ import sys
 import os
 import numpy as np
 
-# No path manipulation needed with proper package structure
-
-PAYLOAD_DIM = 7  # 7 int16 values per payload
+from harness.params import PAYLOAD_DIM
 
 def main():
     # Parse arguments

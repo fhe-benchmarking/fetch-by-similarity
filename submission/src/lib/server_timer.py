@@ -4,6 +4,7 @@ server_timer.py - Server-side timing and logging utility for FHE benchmark
 """
 import time
 import os
+import sys
 from datetime import datetime
 
 
@@ -51,7 +52,6 @@ class ServerTimer:
             print(f"{timestamp} {server_tag} {num}: {name} completed")
         
         # Ensure output is immediately visible
-        import sys
         sys.stdout.flush()
         
         self.last_time = current

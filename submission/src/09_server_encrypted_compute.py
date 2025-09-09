@@ -5,7 +5,6 @@ server_encrypted_compute.py - Perform homomorphic similarity search
 import sys
 
 from lib.server_timer import ServerTimer
-# from lattica_client import LatticaClient
 
 def main():
     # Parse arguments

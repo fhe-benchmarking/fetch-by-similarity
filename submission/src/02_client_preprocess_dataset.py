@@ -5,9 +5,8 @@ client_preprocess_dataset.py - Merge db.bin and payloads.bin into combined_db.bi
 import sys
 import numpy as np
 
-from lib.server_logger import server_print
-
 from harness.params import InstanceParams, PAYLOAD_DIM
+from lib.server_logger import server_print
 
 def main():
     # Parse arguments
@@ -36,11 +35,10 @@ def main():
     extended_payloads = np.concatenate([payloads, marker], axis=1)
     
     # Convert everything to float32 for consistency and concatenate
-    db_float32 = db.astype(np.float32)
     payloads_float32 = extended_payloads.astype(np.float32)
     
     # Combine: each record = [float32 vector] + [8 float32 payload values]
-    combined = np.concatenate([db_float32, payloads_float32], axis=1)
+    combined = np.concatenate([db, payloads_float32], axis=1)
     
     # Save combined database preserving 2D shape
     np.save(f"{dataset_dir}/combined_db.npy", combined)
