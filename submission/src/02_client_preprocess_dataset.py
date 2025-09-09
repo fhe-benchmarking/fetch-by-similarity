@@ -42,11 +42,11 @@ def main():
     # Combine: each record = [float32 vector] + [8 float32 payload values]
     combined = np.concatenate([db_float32, payloads_float32], axis=1)
     
-    # Save combined database
-    combined.tofile(f"{dataset_dir}/combined_db.bin")
+    # Save combined database preserving 2D shape
+    np.save(f"{dataset_dir}/combined_db.npy", combined)
     
-    server_print(f"Merged {db_size} records into {dataset_dir}/combined_db.bin")
-    server_print(f"Record format: {record_dim} vector dims + {PAYLOAD_DIM+1} payload values")
+    server_print(f"Merged {db_size} records into {dataset_dir}/combined_db.npy")
+    server_print(f"Database shape: {combined.shape} ({record_dim} vector dims + {PAYLOAD_DIM+1} payload values per record)")
     
 if __name__ == "__main__":
     main()

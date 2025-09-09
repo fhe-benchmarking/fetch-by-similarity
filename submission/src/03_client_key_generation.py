@@ -30,17 +30,13 @@ def main():
     # Generate keys (this also uploads the evaluation key automatically)
     context, secret_key, homseq = client.generate_key()
     
-    # Save the evaluation key locally (it was already uploaded in generate_key())
-    # The generate_key() method creates a temp file, uploads it, then deletes it
-    # We need to regenerate it to save locally
-    import lattica_query.query_toolkit as toolkit_interface
-    _, evaluation_key = toolkit_interface.generate_key(homseq, context)
+    # Save homseq for use in later steps
+    homseq_path = f"{key_dir}/homseq.bin"
+    with open(homseq_path, "wb") as f:
+        f.write(homseq)
     
-    # Save evaluation key
-    pk_path = f"{key_dir}/pk.lpk"
-    with open(pk_path, "wb") as f:
-        f.write(evaluation_key)
-    
+    # TODO print pk size in client repo
+
     # Save secret key for later use in decryption (following Lattica client standard format)
     import base64
     import json

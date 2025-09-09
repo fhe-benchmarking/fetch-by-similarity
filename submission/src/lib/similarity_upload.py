@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-similarity_upload.py - HTTP client for Lattica similarity database upload
+similarity_upload.py - HTTP client for Lattica custom encrypted data upload
 """
 import requests
 from lattica_common import http_settings
@@ -10,11 +10,11 @@ from lib.token_utils import extract_token_id
 
 
 class SimilarityUploader:
-    """Client for uploading similarity databases to Lattica."""
+    """Client for uploading custom encrypted data to Lattica."""
     
     def __init__(self, token: str):
         """
-        Initialize similarity uploader.
+        Initialize custom encrypted data uploader.
         
         Args:
             token: JWT authentication token
@@ -26,23 +26,25 @@ class SimilarityUploader:
     def upload_database(self, db_file_path: str, model_id: str) -> dict:
         # Extract tokenId for filename
         token_id = extract_token_id(self.token)
-        expected_filename = f"similarity_db_{token_id}"
+        expected_filename = token_id
         
-        url = f"{http_settings.get_be_url()}/api/files/upload_similarity_database"
+        url = f"{http_settings.get_be_url()}/api/files/upload_custom_encrypted_data"
+        # todo: check if we need modelId here. probably not
         params = {'modelId': model_id}
         
         headers = {
             'Authorization': f'Bearer {self.token}',
             'Content-Type': 'application/octet-stream',
         }
-        
+
+        # todo: check if we still need this, as the filename is only the token id
         # Add client info to headers
         if self.module_name:
             headers['X-Client-Module'] = self.module_name
         if self.module_version:
             headers['X-Client-Version'] = self.module_version
         
-        # Stream the file for efficient upload of large databases
+        # Stream the file for efficient upload of large encrypted data
         with open(db_file_path, 'rb') as file:
             response = requests.post(
                 url,
@@ -61,10 +63,10 @@ class SimilarityUploader:
                         error_info.get("min_version")
                     )
                 else:
-                    raise Exception(f"FAILED upload-similarity-database with error: {error_info}")
+                    raise Exception(f"FAILED upload-custom-encrypted-data with error: {error_info}")
             except ValueError:
                 # If response is not JSON, use text
-                raise Exception(f"FAILED upload-similarity-database with error: {response.text}")
+                raise Exception(f"FAILED upload-custom-encrypted-data with error: {response.text}")
         
         result = response.json()
         
