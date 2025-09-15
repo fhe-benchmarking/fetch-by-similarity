@@ -1,12 +1,37 @@
 #!/usr/bin/env python3
 """
-client_postprocess.py - Post-process decrypted results
+client_postprocess.py - Post-process decrypted results - convert payload back from float32 to int16.
 """
 import sys
 import os
 import numpy as np
 
 from harness.params import PAYLOAD_DIM
+
+def extract_count(raw_results):
+    """Extract count from decrypted results."""
+    # In count-only mode, the file contains just the count value
+    return int(raw_results[0])
+
+def extract_payloads(raw_results):
+    """Extract payload vectors from decrypted results and convert float32 to int16."""
+    # In full mode, the file contains only payload data (no count)
+    n_matches = len(raw_results) // PAYLOAD_DIM
+    
+    if n_matches == 0:
+        return np.array([], dtype=np.int16).reshape(0, PAYLOAD_DIM)
+    
+    # Reshape and convert back to int16
+    payloads_float = raw_results[:n_matches * PAYLOAD_DIM].reshape(n_matches, PAYLOAD_DIM)
+    
+    # Check for invalid values before conversion
+    if not np.all(np.isfinite(payloads_float)):
+        bad_vals = payloads_float[~np.isfinite(payloads_float)]
+        raise ValueError(f"Invalid float values in raw results: {bad_vals[:5]}...")
+    
+    payloads_int16 = np.round(payloads_float).astype(np.int16)
+    
+    return payloads_int16
 
 def main():
     # Parse arguments
@@ -19,22 +44,23 @@ def main():
     io_dir = f"io/{instance_name}"
     
     # Read raw results
-    # raw_results = np.fromfile(f"{io_dir}/raw-result.bin", dtype=np.float32)
+    raw_results = np.fromfile(f"{io_dir}/raw-result.bin", dtype=np.float32)
     
     if count_only:
-        # TODO: Extract count and save
-        # count = extract_count(raw_results)
-        # np.array([count], dtype=np.int64).tofile(f"{io_dir}/results.bin")
-        pass
+        # Extract count and save as np.int_ (system-dependent integer size)
+        count = extract_count(raw_results)
+        np.array([count], dtype=np.int_).tofile(f"{io_dir}/results.bin")
     else:
-        # TODO: Extract payload vectors, sort them, and save
-        # payloads = extract_payloads(raw_results)  # Shape: (n_matches, PAYLOAD_DIM)
-        # sorted_payloads = payloads[np.lexsort(payloads.T[::-1])]
-        # sorted_payloads.tofile(f"{io_dir}/results.bin")
-        pass
-    
-    # Create placeholder for now (remove in real implementation)
-    open(f"{io_dir}/results.bin", 'wb').close()
+        # Extract payload vectors, convert to int16, sort lexicographically, and save
+        payloads = extract_payloads(raw_results)  # Shape: (n_matches, PAYLOAD_DIM)
+        
+        if len(payloads) > 0:
+            # Sort lexicographically (sort by columns from right to left)
+            sorted_payloads = payloads[np.lexsort(payloads.T[::-1])]
+        else:
+            sorted_payloads = payloads
+        
+        sorted_payloads.tofile(f"{io_dir}/results.bin")
     
 if __name__ == "__main__":
     main()
