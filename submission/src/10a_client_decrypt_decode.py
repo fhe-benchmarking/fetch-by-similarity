@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """
-client_decrypt_decode.py - Decrypt the computation results
+client_decrypt_decode.py - No-op (decryption already done in step 08)
 """
 import sys
 import os
-import numpy as np
 
 def main():
     # Parse arguments
@@ -14,20 +13,18 @@ def main():
     instance_names = ['toy', 'small', 'medium', 'large']
     instance_name = instance_names[size]
     io_dir = f"io/{instance_name}"
-    encrypted_dir = f"{io_dir}/encrypted"
     
-    # TODO: Read encrypted results and decrypt
-    # with open(f"{encrypted_dir}/results.bin", "rb") as f:
-    #     encrypted_results = f.read()
-    # 
-    # decrypted = toolkit.dec(encrypted_results)
-    # 
-    # # Save raw decrypted results
-    # with open(f"{io_dir}/raw-result.bin", "wb") as f:
-    #     f.write(decrypted)
+    # Results were already decrypted and saved in step 08
+    # by QueryClient.run_query(), which handled:
+    # - Sending encrypted query to Lattica worker
+    # - Receiving encrypted results
+    # - Decrypting results
+    # - Saving to raw-result.bin
     
-    # Create placeholder for now (remove in real implementation)
-    open(f"{io_dir}/raw-result.bin", 'wb').close()
-    
+    # Nothing to do here - raw-result.bin already exists
+    raw_result_path = f"{io_dir}/raw-result.bin"
+    if not os.path.exists(raw_result_path):
+        raise FileNotFoundError(f"Raw result file not found: {raw_result_path}. Step 08 should have created this.")
+
 if __name__ == "__main__":
     main()

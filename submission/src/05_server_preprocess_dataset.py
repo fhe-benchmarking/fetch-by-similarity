@@ -32,8 +32,7 @@ def main():
     # Call load_custom_encrypted_data action
     worker_api.http_client.send_multipart_request(
         "load_custom_encrypted_data",
-        action_params={"fake": "at least one param is required"},
-        with_polling=True
+        action_params={"fake": "at least one param is required"}
     )
     
     server_print("Database loaded into worker successfully!")

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-server_encrypted_compute.py - Perform homomorphic similarity search
+server_encrypted_compute.py - No-op (computation already done in step 08)
 """
 import sys
 
@@ -16,38 +16,15 @@ def main():
     instance_name = instance_names[size]
     encrypted_dir = f"io/{instance_name}/encrypted"
     
-    # Initialize timer for logging
-    timer = ServerTimer()
+    # All homomorphic computation was already performed in step 08
+    # using QueryClient.run_query(), which handles:
+    # - Encryption of query
+    # - Sending to Lattica worker for computation
+    # - Receiving and decrypting results
     
-    # Step 0: Loading keys
-    timer.log_step(0, "Loading keys")
-    # TODO: Load keys from io/<size>/keys/
+    # This step is now a no-op
     
-    # TODO: Load encrypted query
-    # with open(f"{encrypted_dir}/query.bin", "rb") as f:
-    #     encrypted_query = f.read()
-    
-    # Step 1: Matrix-vector product
-    # TODO: Perform homomorphic computation
-    # results = worker_api.compute_similarity(encrypted_query)
-    timer.log_step(1, "Matrix-vector product")
-    
-    # Step 2: Compare to threshold
-    # TODO: Compare similarities to 0.8 threshold
-    timer.log_step(2, "Compare to threshold")
-    
-    # Step 3: Running sums
-    # TODO: Compute running sums if needed
-    timer.log_step(3, "Running sums")
-    
-    # Step 4: Output compression
-    # TODO: Compress and save results
-    # with open(f"{encrypted_dir}/results.bin", "wb") as f:
-    #     f.write(compressed_results)
-    timer.log_step(4, "Output compression")
-    
-    # Create placeholder for now (remove in real implementation)
-    open(f"{encrypted_dir}/results.bin", 'wb').close()
+    # Placeholder file already created in step 08
     
 if __name__ == "__main__":
     main()

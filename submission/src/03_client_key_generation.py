@@ -4,7 +4,10 @@ client_key_generation.py - Generate and save FHE keys
 """
 import sys
 import os
+import base64
+import json
 
+from lattica_query.dev_utils.lattica_query_client_local import LocalQueryClient
 from lattica_query.lattica_query_client import QueryClient
 from lattica_query.auth import get_demo_token
 from lib.constants import MODEL_ID
@@ -20,12 +23,15 @@ def main():
     instance_name = instance_names[size]
     key_dir = f"io/{instance_name}/keys"
     os.makedirs(key_dir, exist_ok=True)
-    
+    os.environ["LATTICA_EVK_PATHNAME"] = f"{key_dir}/evk.lpk"
     # Get demo token using shared model ID constant
     token = get_demo_token(MODEL_ID)
     
     # Initialize QueryClient
-    client = QueryClient(token)
+    if os.getenv('LATTICA_RUN_MODE') == 'LOCAL':
+        client = LocalQueryClient(token)
+    else:
+        client = QueryClient(token)
     
     # Generate keys (this also uploads the evaluation key automatically)
     context, secret_key, homseq = client.generate_key()
@@ -36,9 +42,6 @@ def main():
         f.write(homseq)
     
     # Save secret key for later use in decryption (following Lattica client standard format)
-    import base64
-    import json
-    
     sk_data = [
         base64.b64encode(secret_key[0]).decode('utf-8'),
         base64.b64encode(secret_key[1]).decode('utf-8')
