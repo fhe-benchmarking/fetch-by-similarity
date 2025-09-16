@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-client_postprocess.py - Post-process decrypted results - convert payload back from float32 to int16.
+client_postprocess.py - Post-process decrypted results - convert payload back from float64 to int16.
 """
 import sys
 import os
@@ -14,7 +14,7 @@ def extract_count(raw_results):
     return int(raw_results[0])
 
 def extract_payloads(raw_results):
-    """Extract payload vectors from decrypted results and convert float32 to int16."""
+    """Extract payload vectors from decrypted results and convert float64 to int16."""
     # In full mode, the file contains only payload data (no count)
     n_matches = len(raw_results) // PAYLOAD_DIM
     
@@ -43,9 +43,12 @@ def main():
     instance_name = instance_names[size]
     io_dir = f"io/{instance_name}"
     
-    # Read raw results
-    raw_results = np.fromfile(f"{io_dir}/raw-result.bin", dtype=np.float32)
-    
+    # Read raw results as float64 (the actual dtype saved by step 8)
+    raw_results = np.fromfile(f"{io_dir}/raw-result.bin", dtype=np.float64)
+    print(f"Loaded raw_results shape: {raw_results.shape}")
+    print(f"Loaded raw_results dtype: {raw_results.dtype}")
+    print(f"First 10 values: {raw_results[:10] if len(raw_results) >= 10 else raw_results}")
+
     if count_only:
         # Extract count and save as np.int_ (system-dependent integer size)
         count = extract_count(raw_results)

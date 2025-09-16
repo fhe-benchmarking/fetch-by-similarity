@@ -115,11 +115,18 @@ def main():
     
     server_print(f"Result shape: {result_tensor.shape}")
 
+    # Debug: Check tensor properties
+    server_print(f"Result tensor dtype: {result_tensor.dtype}")
+
     # Log query computation phase completion
     timer.log_step(8.1, "Run Query")
 
-    # Convert result tensor to numpy and save as raw result
+    if result_tensor.is_complex():
+        raise "got compolex tensor"
+
     result_array = result_tensor.numpy()
+    server_print(f"Final result array shape: {result_array.shape}")
+    server_print(f"Final result array dtype: {result_array.dtype}")
 
     # Save raw decrypted results (this would normally be done in step 10a)
     # The raw-result is in float32.
