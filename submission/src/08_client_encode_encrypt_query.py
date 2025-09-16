@@ -88,7 +88,7 @@ def main():
     server_print("Converting query vector to PyTorch tensor...")
     query_tensor = torch.from_numpy(query)
     server_print(f"Created tensor with shape: {query_tensor.shape}")
-    n_slots = 2**11
+    n_slots = 2**9
     query_tensor = query_tensor.expand(n_slots // record_dim, record_dim).reshape(n_slots)
     timer.log_step(8.1, "expand and reshape")
     server_print("Initializing QueryClient...")
