@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-exec uv run python submission/src/07_client_preprocess_query.py "$@"
+exec python submission/src/07_client_preprocess_query.py "$@"
