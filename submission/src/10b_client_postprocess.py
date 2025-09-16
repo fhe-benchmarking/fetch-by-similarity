@@ -7,6 +7,7 @@ import os
 import numpy as np
 
 from harness.params import PAYLOAD_DIM
+from lib.server_logger import server_print
 
 def extract_count(raw_results):
     """Extract count from decrypted results."""
@@ -45,9 +46,9 @@ def main():
     
     # Read raw results as float64 (the actual dtype saved by step 8)
     raw_results = np.fromfile(f"{io_dir}/raw-result.bin", dtype=np.float64)
-    print(f"Loaded raw_results shape: {raw_results.shape}")
-    print(f"Loaded raw_results dtype: {raw_results.dtype}")
-    print(f"First 10 values: {raw_results[:10] if len(raw_results) >= 10 else raw_results}")
+    server_print(f"Loaded raw_results shape: {raw_results.shape}")
+    server_print(f"Loaded raw_results dtype: {raw_results.dtype}")
+    server_print(f"First 10 values: {raw_results[:10] if len(raw_results) >= 10 else raw_results}")
 
     if count_only:
         # Extract count and save as np.int_ (system-dependent integer size)
@@ -56,13 +57,20 @@ def main():
     else:
         # Extract payload vectors, convert to int16, sort lexicographically, and save
         payloads = extract_payloads(raw_results)  # Shape: (n_matches, PAYLOAD_DIM)
-        
+
         if len(payloads) > 0:
             # Sort lexicographically (sort by columns from right to left)
             sorted_payloads = payloads[np.lexsort(payloads.T[::-1])]
         else:
             sorted_payloads = payloads
-        
+
+        # Debug output for sorted_payloads
+        server_print(f"sorted_payloads shape: {sorted_payloads.shape}")
+        if len(sorted_payloads) > 0:
+            server_print(f"sorted_payloads first 10 elements: {sorted_payloads[:10]}")
+        else:
+            server_print(f"sorted_payloads is empty")
+
         sorted_payloads.tofile(f"{io_dir}/results.bin")
     
 if __name__ == "__main__":
