@@ -9,7 +9,6 @@ import torch
 import json
 import base64
 
-from lattica_query.dev_utils.lattica_query_client_local import LocalQueryClient
 from lattica_query.lattica_query_client import QueryClient
 from lattica_query.serialization.api_serialization_utils import dumps_proto_tensor
 from harness.params import InstanceParams
@@ -90,9 +89,11 @@ def main():
     server_print(f"Created tensor with shape: {query_tensor.shape}")
     n_slots = 2**9
     query_tensor = query_tensor.expand(n_slots // record_dim, record_dim).reshape(n_slots)
-    timer.log_step(8.1, "expand and reshape")
+    timer.log_step(8.1, "Expand and reshape")
     server_print("Initializing QueryClient...")
     if os.getenv('LATTICA_RUN_MODE') == 'LOCAL':
+        from lattica_query.dev_utils.lattica_query_client_local import \
+            LocalQueryClient
         client = LocalQueryClient(token)
     else:
         client = QueryClient(token)
@@ -109,8 +110,6 @@ def main():
     except RuntimeError as e:
         server_print(f"Error during query computation: {e}")
         server_print(f"Expected shape might be different. Query tensor shape: {query_tensor.shape}")
-        # Try alternative: maybe it needs padding or different shape
-        # For now, rethrow to see the actual error
         raise
     
     server_print(f"Result shape: {result_tensor.shape}")

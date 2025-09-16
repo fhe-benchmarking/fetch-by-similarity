@@ -7,7 +7,6 @@ import os
 import base64
 import json
 
-from lattica_query.dev_utils.lattica_query_client_local import LocalQueryClient
 from lattica_query.lattica_query_client import QueryClient
 from lattica_query.auth import get_demo_token
 from lib.constants import MODEL_ID
@@ -29,6 +28,8 @@ def main():
     
     # Initialize QueryClient
     if os.getenv('LATTICA_RUN_MODE') == 'LOCAL':
+        from lattica_query.dev_utils.lattica_query_client_local import \
+            LocalQueryClient
         client = LocalQueryClient(token)
     else:
         client = QueryClient(token)
