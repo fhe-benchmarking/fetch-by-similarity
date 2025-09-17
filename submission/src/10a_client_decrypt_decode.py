@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """
-client_decrypt_decode.py - Apply clear computation for debugging/verification
+client_decrypt_decode.py - Decrypt homomorphic computation results and optionally apply clear computation for debugging/verification
 """
 import sys
 import os
 import numpy as np
 import torch
+import json
+import base64
 
 from lattica_query.lattica_query_client import QueryClient
+from lattica_query.serialization.api_serialization_utils import load_proto_tensor
+import lattica_query.query_toolkit as toolkit_interface
 from harness.params import InstanceParams, PAYLOAD_DIM
 from lib.server_logger import server_print
 from lib.server_timer import ServerTimer
@@ -20,12 +24,66 @@ def main():
     instance_names = ['toy', 'small', 'medium', 'large']
     instance_name = instance_names[size]
     io_dir = f"io/{instance_name}"
+    encrypted_dir = f"{io_dir}/encrypted"
+    key_dir = f"{io_dir}/keys"
+    server_dir = f"{io_dir}/server"
 
-    # Results were already decrypted and saved in step 08
-    # Check that raw-result.bin exists
+    # Initialize timer for logging
+    timer = ServerTimer()
+
+    # Load encrypted result from step 9
+    encrypted_result_path = f"{encrypted_dir}/results.bin"
+    if not os.path.exists(encrypted_result_path):
+        raise FileNotFoundError(f"Encrypted results not found: {encrypted_result_path}. Make sure step 9 was run first.")
+    server_print(f"Loading encrypted results from {encrypted_result_path}")
+    with open(encrypted_result_path, "rb") as f:
+        serialized_ct_res = f.read()
+
+    # Load context and secret key for decryption
+    context_path = f"{key_dir}/context.bin"
+    sk_path = f"{key_dir}/sk.json"
+
+    if not os.path.exists(context_path):
+        raise FileNotFoundError(f"Context file not found: {context_path}. Make sure step 3 (key generation) was run first.")
+    if not os.path.exists(sk_path):
+        raise FileNotFoundError(f"Secret key file not found: {sk_path}. Make sure step 3 (key generation) was run first.")
+
+    # Load context
+    with open(context_path, "rb") as f:
+        context = f.read()
+
+    # Load secret key (decode from base64 JSON format)
+    with open(sk_path, "r") as f:
+        sk_data = json.load(f)
+
+    secret_key = (
+        base64.b64decode(sk_data[0]),
+        base64.b64decode(sk_data[1])
+    )
+
+    # Decrypt the results
+    server_print("Decrypting results...")
+    serialized_pt = toolkit_interface.dec(
+        context,
+        secret_key,
+        serialized_ct_res,
+        as_complex=False
+    )
+    timer.log_step(10.1, "Decrypt results")
+
+    # Convert decrypted proto to tensor
+    server_print("Converting decrypted result to tensor...")
+    result_tensor = load_proto_tensor(serialized_pt)
+    server_print(f"Result shape: {result_tensor.shape} and dtype: {result_tensor.dtype}")
+
+    # Convert to numpy array and save
+    result_array = result_tensor.numpy()
+    server_print(f"Final result array shape: {result_array.shape} and dtype: {result_array.dtype}")
+
+    # Save raw decrypted results
     raw_result_path = f"{io_dir}/raw-result.bin"
-    if not os.path.exists(raw_result_path):
-        raise FileNotFoundError(f"Raw result file not found: {raw_result_path}. Step 08 should have created this.")
+    result_array.tofile(raw_result_path)
+    server_print(f"Raw results saved to {raw_result_path}")
 
     # Check if apply_clear is enabled via environment variable
     apply_clear_enabled = os.getenv('LATTICA_APPLY_CLEAR', '').lower() == 'true'
@@ -41,6 +99,7 @@ def main():
     # Get instance parameters
     params = InstanceParams(size)
     record_dim = params.get_record_dim()
+    db_size = params.get_db_size()
 
     # Additional paths needed for apply_clear
     dataset_dir = f"datasets/{instance_name}"
@@ -82,17 +141,21 @@ def main():
     server_print(
         f"Loaded combined database with shape: {db.shape} for apply_clear")
 
+    query_tensor = torch.from_numpy(query)
+    n_slots = 2**9
+    query_tensor = query_tensor.expand(n_slots // record_dim, record_dim).reshape(n_slots)
+
     # Extend query vector to match database column count
     # Original query has record_dim dimensions, need to add 8 payload columns (7 + 1 marker)
-    query_extended = np.zeros(record_dim + PAYLOAD_DIM + 1, dtype=np.float32)
-    query_extended[:record_dim] = query  # Copy original query values
+    query_extended = np.zeros(db_size, dtype=np.float32)
+    query_extended[:n_slots] = query_tensor  # Copy original query values
     # Leave payload columns as zeros (they won't affect similarity computation)
 
     # Reshape query to match database row format (1, record_dim + 8)
-    query_row = query_extended.reshape(1, -1)
+    query_row = query_extended.reshape(-1, 1)
 
     # Concatenate: query as first row, database below
-    combined_tensor_np = np.vstack([query_row, db])
+    combined_tensor_np = np.hstack([query_row, db])
     server_print(
         f"Running apply clear on combined tensor with shape {combined_tensor_np.shape} (query + {db.shape[0]} db rows)")
 

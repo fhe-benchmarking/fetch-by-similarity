@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-server_preprocess_dataset.py - Upload encrypted database to server
+server_preprocess_dataset.py - Load database to server
 """
 import sys
 import os
@@ -25,11 +25,9 @@ def main():
     with open(token_path, "r") as f:
         token = f.read().strip()
     
-    # Load the database into the worker (database was uploaded in step 4)
-    server_print("Loading database into worker...")
     worker_api = LatticaWorkerAPI(token)
-    
-    # Call load_custom_encrypted_data action
+
+    server_print("Loading database into worker...")
     worker_api.http_client.send_multipart_request(
         "load_custom_encrypted_data",
         action_params={"fake": "at least one param is required"}
