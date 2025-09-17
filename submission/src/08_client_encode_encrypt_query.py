@@ -118,7 +118,7 @@ def main():
     server_print(f"Result tensor dtype: {result_tensor.dtype}")
 
     # Log query computation phase completion
-    timer.log_step(8.1, "Run Query")
+    timer.log_step(8.2, "Run Query")
 
     if result_tensor.is_complex():
         raise "got compolex tensor"

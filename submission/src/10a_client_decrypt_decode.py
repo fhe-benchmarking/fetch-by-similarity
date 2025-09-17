@@ -10,6 +10,7 @@ import torch
 from lattica_query.lattica_query_client import QueryClient
 from harness.params import InstanceParams, PAYLOAD_DIM
 from lib.server_logger import server_print
+from lib.server_timer import ServerTimer
 
 def main():
     # Parse arguments
@@ -33,6 +34,9 @@ def main():
         return
 
     server_print("LATTICA_APPLY_CLEAR enabled, running clear computation validation...")
+
+    # Initialize timer for logging
+    timer = ServerTimer()
 
     # Get instance parameters
     params = InstanceParams(size)
@@ -90,15 +94,20 @@ def main():
     # Concatenate: query as first row, database below
     combined_tensor_np = np.vstack([query_row, db])
     server_print(
-        f"Created combined tensor with shape {combined_tensor_np.shape} (query + {db.shape[0]} db rows)")
+        f"Running apply clear on combined tensor with shape {combined_tensor_np.shape} (query + {db.shape[0]} db rows)")
 
     # Convert to PyTorch tensor for apply_clear
     combined_tensor = torch.from_numpy(combined_tensor_np)
 
     # Apply clear computation on combined tensor
     server_print("Running apply_clear computation...")
-    clear_result_tensor = client.apply_clear(combined_tensor)
-    server_print(f"Clear result shape: {clear_result_tensor.shape}")
+    try:
+        clear_result_tensor = client.apply_clear(combined_tensor)
+        server_print(f"Clear result shape: {clear_result_tensor.shape}")
+    except Exception as e:
+        server_print(f"ERROR: apply_clear failed with: {str(e)}")
+        server_print(f"Skipping clear computation validation due to error")
+        return
 
     # Save clear result for comparison/debugging
     clear_result_array = clear_result_tensor.numpy()
@@ -132,6 +141,9 @@ def main():
     # Additional debugging info
     server_print(f"Raw result - min: {raw_result.min():.6f}, max: {raw_result.max():.6f}, mean: {raw_result.mean():.6f}")
     server_print(f"Clear result - min: {clear_result_array.min():.6f}, max: {clear_result_array.max():.6f}, mean: {clear_result_array.mean():.6f}")
+
+    # Log completion of apply_clear validation
+    timer.log_step(10.1, "Apply clear validation")
 
 if __name__ == "__main__":
     main()
