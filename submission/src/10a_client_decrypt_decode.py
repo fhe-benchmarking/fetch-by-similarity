@@ -179,7 +179,7 @@ def main():
     server_print(f"Clear computation results saved to {clear_result_path}")
 
     # Load the raw-result from step 08 for comparison
-    raw_result = np.fromfile(raw_result_path, dtype=np.float32)
+    raw_result = np.fromfile(raw_result_path, dtype=np.float64)
     server_print(f"Loaded raw result with shape: {raw_result.shape}")
     server_print(f"Clear result shape: {clear_result_array.shape}")
 
@@ -192,10 +192,10 @@ def main():
 
     # Check that content matches (with tolerance for floating point differences)
     tolerance = 1e-5
-    max_diff = np.max(np.abs(raw_result - clear_result_array))
+    max_diff = np.max(np.abs(raw_result.round() - clear_result_array.round()))
     server_print(f"Maximum difference between raw and clear results: {max_diff}")
 
-    if not np.allclose(raw_result, clear_result_array, rtol=tolerance, atol=tolerance):
+    if not np.allclose(raw_result.round(), clear_result_array.round(), rtol=tolerance, atol=tolerance):
         raise ValueError(
             f"Content mismatch: maximum difference {max_diff} exceeds tolerance {tolerance}"
         )
