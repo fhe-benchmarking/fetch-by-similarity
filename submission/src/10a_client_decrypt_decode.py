@@ -12,7 +12,7 @@ import base64
 from lattica_query.lattica_query_client import QueryClient
 from lattica_query.serialization.api_serialization_utils import load_proto_tensor
 import lattica_query.query_toolkit as toolkit_interface
-from harness.params import InstanceParams, PAYLOAD_DIM
+from harness.params import InstanceParams
 from lib.server_logger import server_print
 from lib.server_timer import ServerTimer
 
