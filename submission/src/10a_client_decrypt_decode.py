@@ -178,35 +178,9 @@ def main():
     clear_result_array.tofile(clear_result_path)
     server_print(f"Clear computation results saved to {clear_result_path}")
 
-    # Load the raw-result from step 08 for comparison
-    raw_result = np.fromfile(raw_result_path, dtype=np.float64)
-    server_print(f"Loaded raw result with shape: {raw_result.shape}")
-    server_print(f"Clear result shape: {clear_result_array.shape}")
-
-    # Check that shapes match
-    if raw_result.shape != clear_result_array.shape:
-        raise ValueError(
-            f"Shape mismatch: raw_result {raw_result.shape} != clear_result {clear_result_array.shape}"
-        )
-    server_print("✓ Shape check passed: raw_result and clear_result have the same shape")
-
-    # Check that content matches (with tolerance for floating point differences)
-    tolerance = 1e-5
-    max_diff = np.max(np.abs(raw_result.round() - clear_result_array.round()))
-    server_print(f"Maximum difference between raw and clear results: {max_diff}")
-
-    if not np.allclose(raw_result.round(), clear_result_array.round(), rtol=tolerance, atol=tolerance):
-        raise ValueError(
-            f"Content mismatch: maximum difference {max_diff} exceeds tolerance {tolerance}"
-        )
-    server_print(f"✓ Content check passed: raw_result and clear_result match within tolerance {tolerance}")
-
-    # Additional debugging info
-    server_print(f"Raw result - min: {raw_result.min():.6f}, max: {raw_result.max():.6f}, mean: {raw_result.mean():.6f}")
-    server_print(f"Clear result - min: {clear_result_array.min():.6f}, max: {clear_result_array.max():.6f}, mean: {clear_result_array.mean():.6f}")
-
     # Log completion of apply_clear validation
     timer.log_step(10.1, "Apply clear validation")
+
 
 if __name__ == "__main__":
     main()

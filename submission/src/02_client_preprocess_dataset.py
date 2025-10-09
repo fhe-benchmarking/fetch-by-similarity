@@ -7,6 +7,7 @@ import numpy as np
 
 from harness.params import InstanceParams, PAYLOAD_DIM
 from lib.server_logger import server_print
+from lib.constants import PRECISION
 
 def main():
     # Parse arguments
@@ -25,20 +26,18 @@ def main():
     # Read database vectors (float32)
     db = np.fromfile(f"{dataset_dir}/db.bin", dtype=np.float32)
     db = db.reshape((db_size, record_dim))
-    
+
     # Read payload vectors (int16) 
     payloads = np.fromfile(f"{dataset_dir}/payloads.bin", dtype=np.int16)
     payloads = payloads.reshape((db_size, PAYLOAD_DIM))
-    
-    # Add marker value (4095) to each payload to make it 8 int16 values
-    marker = np.full((db_size, 1), 4095, dtype=np.int16)
-    extended_payloads = np.concatenate([payloads, marker], axis=1)
-    
-    # Convert everything to float32 for consistency and concatenate
-    payloads_float32 = extended_payloads.astype(np.float32)
-    
+
+    # Add marker value (8192) to each payload to make it 8 int16 values
+    marker = np.full((db_size, 1), 8192, dtype=np.int16)
+    extended_payloads = np.concatenate([marker, payloads], axis=1)
+    extended_payloads = extended_payloads / PRECISION
+
     # Combine: each record = [float32 vector] + [8 float32 payload values]
-    combined = np.concatenate([db, payloads_float32], axis=1)
+    combined = np.concatenate([db, extended_payloads], axis=1)
     
     # Save combined database preserving 2D shape
     np.save(f"{dataset_dir}/combined_db.npy", combined)
