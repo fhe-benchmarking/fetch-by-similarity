@@ -7,7 +7,7 @@ set -euo pipefail
 export CMAKE_PREFIX_PATH=~/p/openfhe-development/install
 export LATTICA_BE_URL=http://localhost:3050
 export LATTICA_RUN_MODE=LOCAL
-export LATTICA_APPLY_CLEAR=true
+export LATTICA_APPLY_CLEAR=false
 
 # Get the directory where this script is located
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
