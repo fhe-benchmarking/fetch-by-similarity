@@ -131,15 +131,27 @@ def main():
     query = np.fromfile(query_path, dtype=np.float32)
     server_print(f"Loaded query vector with shape: {query.shape}")
 
-    # Load the combined database for apply_clear operation
-    db_path = f"{dataset_dir}/combined_db.npy"
+    # Load the database for apply_clear operation
+    db_path = f"{dataset_dir}/db.npy"
     if not os.path.exists(db_path):
         raise FileNotFoundError(
-            f"Combined database file not found: {db_path}. Make sure step 2 (preprocess) was run first.")
+            f"Database file not found: {db_path}. Make sure step 2 (preprocess) was run first.")
 
     db = np.load(db_path)  # Shape: (db_size, record_dim + 8)
     server_print(
-        f"Loaded combined database with shape: {db.shape} for apply_clear")
+        f"Loaded database with shape: {db.shape} for apply_clear")
+
+
+    # Load the payloads for apply_clear operation
+    payloads_path = f"{dataset_dir}/payloads.npy"
+    if not os.path.exists(payloads_path):
+        raise FileNotFoundError(
+            f"Payloads file not found: {payloads_path}. Make sure step 2 (preprocess) was run first.")
+
+    payloads = np.load(payloads_path)  # Shape: (db_size, record_dim + 8)
+    server_print(
+        f"Loaded payloads with shape: {payloads.shape} for apply_clear")
+
 
     query_tensor = torch.from_numpy(query)
     n_slots = 2**9
@@ -155,7 +167,7 @@ def main():
     query_row = query_extended.reshape(-1, 1)
 
     # Concatenate: query as first row, database below
-    combined_tensor_np = np.hstack([query_row, db])
+    combined_tensor_np = np.hstack([query_row, db, payloads])
     server_print(
         f"Running apply clear on combined tensor with shape {combined_tensor_np.shape} (query + {db.shape[0]} db rows)")
 

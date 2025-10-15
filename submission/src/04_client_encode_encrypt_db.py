@@ -8,6 +8,7 @@ import json
 import base64
 import numpy as np
 import torch
+import zipfile
 
 from lib.server_logger import server_print
 from lib.server_timer import ServerTimer
@@ -33,10 +34,12 @@ def main():
     server_dir = f"io/{instance_name}/server"
     os.makedirs(encrypted_dir, exist_ok=True)
     
-    # Load the combined database in 2D shape
-    db = np.load(f"{dataset_dir}/combined_db.npy")
-    server_print(f"Loaded combined database with shape: {db.shape}")
-    
+    # Load the db and payloads from step 2
+    db = np.load(f"{dataset_dir}/db.npy")
+    payloads = np.load(f"{dataset_dir}/payloads.npy")
+    server_print(f"Loaded database with shape: {db.shape}")
+    server_print(f"Loaded payloads with shape: {payloads.shape}")
+
     # Load context, secret key, and homseq from step 3
     with open(f"{key_dir}/context.bin", "rb") as f:
         context = f.read()
@@ -48,8 +51,12 @@ def main():
         sk_data = json.load(f)
     
     # Convert back from base64
-    secret_key = (
-        base64.b64decode(sk_data[0]),
+    secret_key_db = (
+        base64.b64decode(sk_data[2]),
+        base64.b64decode(sk_data[1])
+    )
+    secret_key_payloads = (
+        base64.b64decode(sk_data[3]),
         base64.b64decode(sk_data[1])
     )
     
@@ -71,30 +78,59 @@ def main():
     # Convert numpy array to PyTorch tensor and serialize properly
     db_tensor = torch.from_numpy(db)
     server_print(f"Created tensor with shape: {db_tensor.shape}")
+
+    payloads_tensor = torch.from_numpy(payloads)
+    server_print(f"Created tensor with shape: {payloads_tensor.shape}")
+
     
-    server_print("Serializing tensor...")
-    serialized_pt = dumps_proto_tensor(db_tensor)
-    server_print(f"Serialized tensor size: {len(serialized_pt)} bytes")
+    server_print("Serializing db tensor...")
+    serialized_db_pt = dumps_proto_tensor(db_tensor)
+    server_print(f"Serialized tensor size: {len(serialized_db_pt)} bytes")
     
-    # Encrypt using Lattica toolkit
-    server_print(f"Starting encryption with pt_axis_external={pt_axis_external}...")
-    encrypted_data = toolkit_interface.enc(
+    server_print("Serializing payloads tensor...")
+    serialized_payloads_pt = dumps_proto_tensor(payloads_tensor)
+    server_print(f"Serialized tensor size: {len(serialized_payloads_pt)} bytes")
+
+    # Encrypt db using Lattica toolkit
+    server_print(f"Starting db encryption with pt_axis_external={pt_axis_external}...")
+    encrypted_db_data = toolkit_interface.enc(
         context, 
-        secret_key, 
-        serialized_pt,
+        secret_key_db, 
+        serialized_db_pt,
         pack_for_transmission=True,
+        custom_state_name="db_state",
         n_axis_external=pt_axis_external
     )
     # Log encryption phase completion
-    server_print(f"Encrypted size: {len(encrypted_data)} bytes")
-    timer.log_step(4.1, "Database encryption")
-    
+    server_print(f"Encrypted db size: {len(encrypted_db_data)} bytes")
+    timer.log_step(4.11, "Database encryption")
+
+    # Encrypt payloads using Lattica toolkit
+    server_print(f"Starting payloads encryption with pt_axis_external={pt_axis_external}...")
+    encrypted_payloads_data = toolkit_interface.enc(
+        context, 
+        secret_key_payloads, 
+        serialized_payloads_pt,
+        pack_for_transmission=True,
+        custom_state_name="payload_state",
+        n_axis_external=pt_axis_external
+    )
+    # Log encryption phase completion
+    server_print(f"Encrypted payloads size: {len(encrypted_payloads_data)} bytes")
+    timer.log_step(4.12, "Payloads encryption")
+
     # Save encrypted database as single file (no batching needed for Lattica)
     encrypted_db_path = f"{encrypted_dir}/db.bin"
     with open(encrypted_db_path, "wb") as f:
-        f.write(encrypted_data)
-    
+        f.write(encrypted_db_data)
     server_print(f"Encrypted database saved to {encrypted_db_path}")
+        
+    
+    # Save encrypted payloads as single file (no batching needed for Lattica)
+    encrypted_payloads_path = f"{encrypted_dir}/payloads.bin"
+    with open(encrypted_payloads_path, "wb") as f:
+        f.write(encrypted_payloads_data)
+    server_print(f"Encrypted payloads saved to {encrypted_payloads_path}")
 
     # Upload encrypted database to Lattica
     token_path = f"{server_dir}/token.txt"
@@ -104,15 +140,25 @@ def main():
     with open(token_path, "r") as f:
         token = f.read().strip()
     
-    server_print(f"Uploading encrypted database from {encrypted_db_path}...")
+
+    archive_path = f"{encrypted_dir}/encrypted_data.zip"
+    server_print(f"Creating archive at {archive_path}")
+    with zipfile.ZipFile(archive_path, 'w') as zipf:
+        zipf.write(encrypted_db_path, arcname='db.bin')
+        zipf.write(encrypted_payloads_path, arcname='payloads.bin')
+    server_print(f"Archive created successfully. Upload this file: {archive_path}")
     
+
+    server_print(f"Uploading encrypted database & payloads from {archive_path}...")
+
     uploader = SimilarityUploader(token)
-    result = uploader.upload_database(encrypted_db_path, MODEL_ID)
+    # Elad: need to update this code as well (maybe in logic as well) - understand why we do this upload
+    result = uploader.upload_database(archive_path, MODEL_ID)
     
-    server_print(f"S3 Key: {result.get('s3Key')}")
+    server_print(f"S3 DB Key: {result.get('s3Key')}")
     
     # Log upload phase completion
-    timer.log_step(4.2, "Database upload")
+    timer.log_step(4.2, "Database & payloads upload")
     
 if __name__ == "__main__":
     main()
