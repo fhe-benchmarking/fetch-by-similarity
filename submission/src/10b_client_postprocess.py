@@ -54,7 +54,7 @@ def main():
 
     # Post-processing
     results = _post_process(raw_results)
-    server_print(f"results shape: {raw_results.shape}")
+    server_print(f"results shape: {results.shape}")
 
     # Remove marker from results
     results_np = results[:, 1:].to(torch.int16).numpy()
