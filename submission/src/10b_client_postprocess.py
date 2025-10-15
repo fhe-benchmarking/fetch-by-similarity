@@ -12,7 +12,8 @@ from lib.server_logger import server_print
 from lib.server_timer import ServerTimer
 from lib.constants import PRECISION
 
-def _post_process(raw_result, clear_result_tensor):
+
+def _post_process(raw_result):
     def _sort_results(a):
         # Sort by the second column (index 1)
         a = a[a[:, 1].argsort()]
@@ -31,10 +32,8 @@ def _post_process(raw_result, clear_result_tensor):
     raw_result = _extract_final_results(raw_result)
     raw_result = _sort_results(raw_result)
 
-    clear_result_tensor = _extract_final_results(clear_result_tensor)
-    clear_result_tensor = _sort_results(clear_result_tensor)
+    return raw_result
 
-    return raw_result, clear_result_tensor
 
 def main():
     # Initialize timer for logging
@@ -50,70 +49,44 @@ def main():
     io_dir = f"io/{instance_name}"
     
     # Read raw results as float64 (the actual dtype saved by step 8)
-    raw_results = np.fromfile(f"{io_dir}/raw-result.bin", dtype=np.float64)
+    raw_results = torch.from_numpy(np.fromfile(f"{io_dir}/raw-result.bin", dtype=np.float64))
     server_print(f"Loaded raw_results: shape: {raw_results.shape}, dtype: {raw_results.dtype}")
-    server_print(f"First 10 row results: {raw_results[:10] if len(raw_results) >= 10 else raw_results}...")
 
-    # Read results from clear computation
-    clear_results = np.fromfile(f"{io_dir}/clear-result.bin", dtype=np.float64)
+    # Post-processing
+    results = _post_process(raw_results)
+    server_print(f"results shape: {raw_results.shape}")
+
+    # Remove marker from results
+    results_np = results[:, 1:].to(torch.int16).numpy()
+
+    # Check if apply_clear is enabled via environment variable
+    apply_clear_enabled = os.getenv('LATTICA_APPLY_CLEAR', '').lower() == 'true'
+    if apply_clear_enabled:
+        # Read results from clear computation
+        clear_results_raw = torch.from_numpy(np.fromfile(f"{io_dir}/clear-result.bin", dtype=np.float64))
+        server_print(f"Loaded clear_results: shape: {clear_results_raw.shape}, dtype: {clear_results_raw.dtype}")
+
+        # Post-processing
+        clear_results = _post_process(clear_results_raw)
+        server_print(f"clear_results shape: {clear_results.shape}")
+
+        # Check that number of elements match after post-processing
+        if results.shape != clear_results.shape:
+            raise ValueError(
+                f"Post-processing: Number of matches mismatch: {results.shape=}, {clear_results.shape=}"
+            )
+
+        assert torch.equal(results, clear_results), "Post-processing: Results from raw_result and clear_result do not match"
 
     if count_only:
         # Extract count and save as np.int_ (system-dependent integer size)
-        count = int(raw_results[0])
-        raw_results = np.array([count], dtype=np.int_)
-    else:
+        results_np = np.array([results_np.shape[0]], dtype=np.int_)
 
-        raw_results = torch.from_numpy(raw_results)
-        clear_results = torch.from_numpy(clear_results)
-
-        # Check that number of elements match
-        if raw_results.numel() != clear_results.numel():
-            raise ValueError(
-                f"Number of elements mismatch: raw_result {raw_results.numel()} != clear_result {clear_results.numel()}"
-            )
-        server_print(
-            "✓ Number of elements check passed: raw_result and clear_result have the same number of elements")
-
-        # Post-processing
-        raw_results, clear_results = _post_process(raw_results, clear_results)
-        server_print(f"raw_results shape: {raw_results.shape}")
-        server_print(f"clear_results shape: {clear_results.shape}")
-
-        n_matches = raw_results.shape[0]
-
-        if n_matches == 0:
-            server_print(f"Zero matches found")
-            raw_results = np.array([], dtype=np.int16).reshape(0, PAYLOAD_DIM)
-            raw_results.tofile(f"{io_dir}/results.bin")
-            return
-
-        # Check that number of elements match after post-processing
-        if raw_results.numel() != clear_results.numel():
-            raise ValueError(
-                f"Post-processing: Number of elements mismatch: raw_result {raw_results.numel()} != clear_result {clear_results.numel()}"
-            )
-        server_print(
-            "✓ Post-processing: Number of elements check passed: raw_result and clear_result have the same number of elements")
-
-        tolerance = 1 / 2 ** 10
-        max_diff = torch.max(torch.abs(raw_results.round() - clear_results.round()))
-        server_print(f"Maximum difference between raw and clear results: {max_diff}")
-
-        torch.testing.assert_close(raw_results.round(),
-                                   clear_results.round(),
-                                   rtol=tolerance,
-                                   atol=tolerance,
-                                   msg=f"Content mismatch: exceeds tolerance {tolerance}")
-
-        server_print(f"✓ Content check passed: raw_result and clear_result match within tolerance {tolerance}")
-
-        # Remove marker from results
-        raw_results = raw_results[:, 1:].to(torch.int16).numpy()
-
-    raw_results.tofile(f"{io_dir}/results.bin")
+    results_np.tofile(f"{io_dir}/results.bin")
 
     # Log completion of postprocessing
     timer.log_step(10.2, "Postprocessing")
+
 
 if __name__ == "__main__":
     main()
