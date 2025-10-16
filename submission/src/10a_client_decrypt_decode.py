@@ -88,7 +88,6 @@ def main():
     # Check if apply_clear is enabled via environment variable
     apply_clear_enabled = os.getenv('LATTICA_APPLY_CLEAR', '').lower() == 'true'
     if not apply_clear_enabled:
-        server_print("LATTICA_APPLY_CLEAR not enabled, skipping clear computation validation")
         return
 
     server_print("LATTICA_APPLY_CLEAR enabled, running clear computation validation...")
