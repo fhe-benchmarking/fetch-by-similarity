@@ -55,19 +55,6 @@ def main():
         base64.b64decode(sk_data[0]),
         base64.b64decode(sk_data[1])
     )
-    
-    # Parse homseq to extract pt_axis_external from client blocks
-    homseq_proto = QueryClientSequentialHomOp()
-    homseq_proto.ParseFromString(homseq)
-    
-    server_print(f"Parsed homseq with {len(homseq_proto.client_blocks)} client blocks")
-    
-    # Get pt_axis_external from the first client block if it exists
-    first_block = homseq_proto.client_blocks[0]
-    pt_axis_external = first_block.pt_axis_external if first_block.HasField("pt_axis_external") else None
-    server_print(f"Found pt_axis_external field with value: {pt_axis_external}")
-    if pt_axis_external != 0:
-        raise "pt_axis_external not zero: {pt_axis_external}"
 
     # Serialize the plaintext data properly for FHE encryption
     server_print("Converting numpy array to PyTorch tensor...")
@@ -88,28 +75,24 @@ def main():
     server_print(f"Serialized tensor size: {len(serialized_payloads_pt)} bytes")
 
     # Encrypt db using Lattica toolkit
-    server_print(f"Starting db encryption with pt_axis_external={pt_axis_external}...")
+    server_print(f"Starting db encryption...")
     encrypted_db_data = toolkit_interface.enc(
         context, 
         serialized_sk, 
         serialized_db_pt,
-        pack_for_transmission=True,
-        custom_state_name="db_state",
-        n_axis_external=pt_axis_external
+        custom_state_name="db",
     )
     # Log encryption phase completion
     server_print(f"Encrypted db size: {len(encrypted_db_data)} bytes")
     timer.log_step(4.11, "Database encryption")
 
     # Encrypt payloads using Lattica toolkit
-    server_print(f"Starting payloads encryption with pt_axis_external={pt_axis_external}...")
+    server_print(f"Starting payloads encryption...")
     encrypted_payloads_data = toolkit_interface.enc(
         context, 
         serialized_sk, 
         serialized_payloads_pt,
-        pack_for_transmission=True,
-        custom_state_name="payload_state",
-        n_axis_external=pt_axis_external
+        custom_state_name="payload",
     )
     # Log encryption phase completion
     server_print(f"Encrypted payloads size: {len(encrypted_payloads_data)} bytes")
