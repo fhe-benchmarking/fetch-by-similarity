@@ -51,12 +51,8 @@ def main():
         sk_data = json.load(f)
     
     # Convert back from base64
-    secret_key_db = (
-        base64.b64decode(sk_data[2]),
-        base64.b64decode(sk_data[1])
-    )
-    secret_key_payloads = (
-        base64.b64decode(sk_data[3]),
+    serialized_sk = (
+        base64.b64decode(sk_data[0]),
         base64.b64decode(sk_data[1])
     )
     
@@ -95,7 +91,7 @@ def main():
     server_print(f"Starting db encryption with pt_axis_external={pt_axis_external}...")
     encrypted_db_data = toolkit_interface.enc(
         context, 
-        secret_key_db, 
+        serialized_sk, 
         serialized_db_pt,
         pack_for_transmission=True,
         custom_state_name="db_state",
@@ -109,7 +105,7 @@ def main():
     server_print(f"Starting payloads encryption with pt_axis_external={pt_axis_external}...")
     encrypted_payloads_data = toolkit_interface.enc(
         context, 
-        secret_key_payloads, 
+        serialized_sk, 
         serialized_payloads_pt,
         pack_for_transmission=True,
         custom_state_name="payload_state",

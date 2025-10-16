@@ -36,8 +36,6 @@ def main():
     
     # Generate keys (this also uploads the evaluation key automatically)
     context, secret_key, homseq = client.generate_key()
-    _, secret_key_db, _ = client.generate_key(custom_state_name="db_state")
-    _, secret_key_payloads, _ = client.generate_key(custom_state_name="payload_state")
     
     # Save homseq for use in later steps
     homseq_path = f"{key_dir}/homseq.bin"
@@ -46,10 +44,8 @@ def main():
     
     # Save secret key for later use in decryption (following Lattica client standard format)
     sk_data = [
-        base64.b64encode(secret_key[0]).decode('utf-8'), # query sk
-        base64.b64encode(secret_key[1]).decode('utf-8'), # query sk_coefs
-        base64.b64encode(secret_key_db[0]).decode('utf-8'), # db sk
-        base64.b64encode(secret_key_payloads[0]).decode('utf-8') # payloads sk
+        base64.b64encode(secret_key[0]).decode('utf-8'),
+        base64.b64encode(secret_key[1]).decode('utf-8'),
     ]
     
     sk_path = f"{key_dir}/sk.json"
