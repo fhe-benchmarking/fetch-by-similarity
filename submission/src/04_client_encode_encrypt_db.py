@@ -98,42 +98,28 @@ def main():
     server_print(f"Encrypted payloads size: {len(encrypted_payloads_data)} bytes")
     timer.log_step(4.12, "Payloads encryption")
 
-    # Save encrypted database as single file (no batching needed for Lattica)
-    encrypted_db_path = f"{encrypted_dir}/db.bin"
-    with open(encrypted_db_path, "wb") as f:
-        f.write(encrypted_db_data)
-    server_print(f"Encrypted database saved to {encrypted_db_path}")
-        
-    
-    # Save encrypted payloads as single file (no batching needed for Lattica)
-    encrypted_payloads_path = f"{encrypted_dir}/payloads.bin"
-    with open(encrypted_payloads_path, "wb") as f:
-        f.write(encrypted_payloads_data)
-    server_print(f"Encrypted payloads saved to {encrypted_payloads_path}")
-
-    # Upload encrypted database to Lattica
+    # Get token for upload
     token_path = f"{server_dir}/token.txt"
     if not os.path.exists(token_path):
         raise FileNotFoundError(f"Token file not found: {token_path}. Make sure step 3 (key generation) was run first.")
     
     with open(token_path, "r") as f:
         token = f.read().strip()
-    
 
+    # Define the path for the archive containing db & payloads
     archive_path = f"{encrypted_dir}/encrypted_data.zip"
-    server_print(f"Creating archive at {archive_path}")
+    server_print(f"Creating archive '{archive_path}' from in-memory data...")
+
+    # Write db.bin and payloads.bin into a zip archive
     with zipfile.ZipFile(archive_path, 'w') as zipf:
-        zipf.write(encrypted_db_path, arcname='db.bin')
-        zipf.write(encrypted_payloads_path, arcname='payloads.bin')
-    server_print(f"Archive created successfully. Upload this file: {archive_path}")
-    
+        zipf.writestr('db.bin', encrypted_db_data)
+        zipf.writestr('payloads.bin', encrypted_payloads_data)
+    server_print(f"db.bin & payloads.bin archive created successfully. Upload this file: {archive_path}")
 
+    # Upload the db.bin and payloads.bin archive
     server_print(f"Uploading encrypted database & payloads from {archive_path}...")
-
     uploader = SimilarityUploader(token)
-    # Elad: need to update this code as well (maybe in logic as well) - understand why we do this upload
     result = uploader.upload_database(archive_path, MODEL_ID)
-    
     server_print(f"S3 DB Key: {result.get('s3Key')}")
     
     # Log upload phase completion
