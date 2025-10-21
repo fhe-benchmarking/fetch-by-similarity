@@ -15,11 +15,10 @@ from harness.params import InstanceParams
 from lib.server_logger import server_print
 from lib.server_timer import ServerTimer
 
-def main():
 
+def main():
     # Parse arguments
     size = int(sys.argv[1])
-    count_only = len(sys.argv) > 2 and sys.argv[2] == "--count_only"
 
     # Get instance parameters
     params = InstanceParams(size)
@@ -31,7 +30,6 @@ def main():
     dataset_dir = f"datasets/{instance_name}"
     io_dir = f"io/{instance_name}"
     key_dir = f"{io_dir}/keys"
-    server_dir = f"{io_dir}/server"
     encrypted_dir = f"{io_dir}/encrypted"
 
     # Ensure directories exist
@@ -42,28 +40,17 @@ def main():
     if not os.path.exists(query_path):
         raise FileNotFoundError(f"Query file not found: {query_path}. Make sure the harness has generated the query.")
 
-    query = np.fromfile(query_path, dtype=np.float32)
-    server_print(f"Loaded query vector with shape: {query.shape}")
+    query_tensor = torch.from_numpy(np.fromfile(query_path, dtype=np.float32))
+    server_print(f"Loaded query with shape: {query_tensor.shape}")
 
-    # Load token from step 3
-    token_path = f"{server_dir}/token.txt"
-    if not os.path.exists(token_path):
-        raise FileNotFoundError(f"Token file not found: {token_path}. Make sure step 3 (key generation) was run first.")
-
-    with open(token_path, "r") as f:
-        token = f.read().strip()
-
-    # Load context, secret key, and homseq from step 3
+    # Load context and secret key from step 3
     context_path = f"{key_dir}/context.bin"
     sk_path = f"{key_dir}/sk.json"
-    homseq_path = f"{key_dir}/homseq.bin"
 
     if not os.path.exists(context_path):
         raise FileNotFoundError(f"Context file not found: {context_path}. Make sure step 3 (key generation) was run first.")
     if not os.path.exists(sk_path):
         raise FileNotFoundError(f"Secret key file not found: {sk_path}. Make sure step 3 (key generation) was run first.")
-    if not os.path.exists(homseq_path):
-        raise FileNotFoundError(f"Homseq file not found: {homseq_path}. Make sure step 3 (key generation) was run first.")
 
     # Load context
     with open(context_path, "rb") as f:
@@ -78,24 +65,14 @@ def main():
         base64.b64decode(sk_data[1])
     )
 
-    # Load homseq
-    with open(homseq_path, "rb") as f:
-        homseq = f.read()
-
     timer = ServerTimer()
-    # Convert query to PyTorch tensor
-    server_print("Converting query vector to PyTorch tensor...")
-    query_tensor = torch.from_numpy(query)
-    server_print(f"Created tensor with shape: {query_tensor.shape}")
-    n_slots = 2**9
+    n_slots = 2**9  # TODO: get from context
     query_tensor = query_tensor.expand(n_slots // record_dim, record_dim).reshape(n_slots)
     timer.log_step(8.1, "Expand and reshape")
 
-    # Serialize query tensor to proto format
-    server_print("Serializing query tensor...")
+    # Encrypt the query
     serialized_pt = dumps_proto_tensor(query_tensor)
 
-    # Encrypt the query
     server_print("Encrypting query...")
     serialized_ct = toolkit_interface.enc(
         context,
