@@ -72,7 +72,7 @@ def main():
         context, 
         serialized_sk, 
         serialized_payloads_pt,
-        custom_state_name="payload",
+        custom_state_name="payloads",
     )
     server_print(f"Encrypted payloads size: {len(encrypted_payloads_data)} bytes")
     timer.log_step(4.12, "Payloads encryption")
