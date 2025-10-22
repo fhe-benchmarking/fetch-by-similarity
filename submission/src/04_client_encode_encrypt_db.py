@@ -8,12 +8,12 @@ import json
 import base64
 import numpy as np
 import torch
+import zipfile
 
 from lib.server_logger import server_print
 from lib.server_timer import ServerTimer
 from lib.constants import MODEL_ID
 from lib.similarity_upload import SimilarityUploader
-from lattica_query.serialization.hom_op_pb2 import QueryClientSequentialHomOp
 from lattica_query.serialization.api_serialization_utils import dumps_proto_tensor
 import lattica_query.query_toolkit as toolkit_interface
 
@@ -33,86 +33,72 @@ def main():
     server_dir = f"io/{instance_name}/server"
     os.makedirs(encrypted_dir, exist_ok=True)
     
-    # Load the combined database in 2D shape
-    db = np.load(f"{dataset_dir}/combined_db.npy")
-    server_print(f"Loaded combined database with shape: {db.shape}")
-    
-    # Load context, secret key, and homseq from step 3
+    # Load the db and payloads from step 2
+    db_tensor = torch.from_numpy(np.load(f"{dataset_dir}/db.npy"))
+    server_print(f"Loaded database with shape: {db_tensor.shape}")
+
+    payloads_tensor = torch.from_numpy(np.load(f"{dataset_dir}/payloads.npy"))
+    server_print(f"Loaded payloads with shape: {payloads_tensor.shape}")
+
+    # Load context and secret key from step 3
     with open(f"{key_dir}/context.bin", "rb") as f:
         context = f.read()
-    
-    with open(f"{key_dir}/homseq.bin", "rb") as f:
-        homseq = f.read()
     
     with open(f"{key_dir}/sk.json", "r") as f:
         sk_data = json.load(f)
     
     # Convert back from base64
-    secret_key = (
+    serialized_sk = (
         base64.b64decode(sk_data[0]),
         base64.b64decode(sk_data[1])
     )
-    
-    # Parse homseq to extract pt_axis_external from client blocks
-    homseq_proto = QueryClientSequentialHomOp()
-    homseq_proto.ParseFromString(homseq)
-    
-    server_print(f"Parsed homseq with {len(homseq_proto.client_blocks)} client blocks")
-    
-    # Get pt_axis_external from the first client block if it exists
-    first_block = homseq_proto.client_blocks[0]
-    pt_axis_external = first_block.pt_axis_external if first_block.HasField("pt_axis_external") else None
-    server_print(f"Found pt_axis_external field with value: {pt_axis_external}")
-    if pt_axis_external != 0:
-        raise "pt_axis_external not zero: {pt_axis_external}"
 
-    # Serialize the plaintext data properly for FHE encryption
-    server_print("Converting numpy array to PyTorch tensor...")
-    # Convert numpy array to PyTorch tensor and serialize properly
-    db_tensor = torch.from_numpy(db)
-    server_print(f"Created tensor with shape: {db_tensor.shape}")
-    
-    server_print("Serializing tensor...")
-    serialized_pt = dumps_proto_tensor(db_tensor)
-    server_print(f"Serialized tensor size: {len(serialized_pt)} bytes")
-    
-    # Encrypt using Lattica toolkit
-    server_print(f"Starting encryption with pt_axis_external={pt_axis_external}...")
-    encrypted_data = toolkit_interface.enc(
+    # Encrypt db using Lattica toolkit
+    serialized_db_pt = dumps_proto_tensor(db_tensor)
+
+    encrypted_db_data = toolkit_interface.enc(
         context, 
-        secret_key, 
-        serialized_pt,
-        pack_for_transmission=True,
-        n_axis_external=pt_axis_external
+        serialized_sk, 
+        serialized_db_pt,
+        custom_state_name="db",
     )
-    # Log encryption phase completion
-    server_print(f"Encrypted size: {len(encrypted_data)} bytes")
-    timer.log_step(4.1, "Database encryption")
-    
-    # Save encrypted database as single file (no batching needed for Lattica)
-    encrypted_db_path = f"{encrypted_dir}/db.bin"
-    with open(encrypted_db_path, "wb") as f:
-        f.write(encrypted_data)
-    
-    server_print(f"Encrypted database saved to {encrypted_db_path}")
+    server_print(f"Encrypted db size: {len(encrypted_db_data)} bytes")
+    timer.log_step(4.11, "Database encryption")
 
-    # Upload encrypted database to Lattica
+    # Encrypt payloads using Lattica toolkit
+    serialized_payloads_pt = dumps_proto_tensor(payloads_tensor)
+
+    encrypted_payloads_data = toolkit_interface.enc(
+        context, 
+        serialized_sk, 
+        serialized_payloads_pt,
+        custom_state_name="payloads",
+    )
+    server_print(f"Encrypted payloads size: {len(encrypted_payloads_data)} bytes")
+    timer.log_step(4.12, "Payloads encryption")
+
+    # Get token for upload
     token_path = f"{server_dir}/token.txt"
     if not os.path.exists(token_path):
         raise FileNotFoundError(f"Token file not found: {token_path}. Make sure step 3 (key generation) was run first.")
     
     with open(token_path, "r") as f:
         token = f.read().strip()
-    
-    server_print(f"Uploading encrypted database from {encrypted_db_path}...")
-    
+
+    # Write archive containing db & payloads
+    archive_path = f"{encrypted_dir}/encrypted_data.zip"
+    with zipfile.ZipFile(archive_path, 'w') as zipf:
+        zipf.writestr('db.bin', encrypted_db_data)
+        zipf.writestr('payloads.bin', encrypted_payloads_data)
+    server_print(f"db.bin & payloads.bin archive created successfully.")
+
+    # Upload the archive as custom encrypted data
+    server_print(f"Uploading encrypted database & payloads from {archive_path}...")
     uploader = SimilarityUploader(token)
-    result = uploader.upload_database(encrypted_db_path, MODEL_ID)
-    
-    server_print(f"S3 Key: {result.get('s3Key')}")
-    
+    uploader.upload_database(archive_path, MODEL_ID)
+
     # Log upload phase completion
-    timer.log_step(4.2, "Database upload")
+    timer.log_step(4.2, "Database & payloads upload")
     
 if __name__ == "__main__":
     main()

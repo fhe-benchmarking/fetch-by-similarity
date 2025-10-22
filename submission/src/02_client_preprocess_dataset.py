@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-client_preprocess_dataset.py - Merge db.bin and payloads.bin into combined_db.bin
+client_preprocess_dataset.py - Adjust db.bin and payloads.bin as numpy files
 """
 import sys
 import numpy as np
@@ -36,14 +36,13 @@ def main():
     extended_payloads = np.concatenate([marker, payloads], axis=1)
     extended_payloads = extended_payloads / PRECISION
 
-    # Combine: each record = [float32 vector] + [8 float32 payload values]
-    combined = np.concatenate([db, extended_payloads], axis=1)
-    
     # Save combined database preserving 2D shape
-    np.save(f"{dataset_dir}/combined_db.npy", combined)
+    np.save(f"{dataset_dir}/db.npy", db)
+    np.save(f"{dataset_dir}/payloads.npy", extended_payloads)
     
-    server_print(f"Merged {db_size} records into {dataset_dir}/combined_db.npy")
-    server_print(f"Database shape: {combined.shape} ({record_dim} vector dims + {PAYLOAD_DIM+1} payload values per record)")
+    server_print(f"Database shape: {db.shape} ({record_dim} vector dims")
+    server_print(f"Extended payloads shape: {extended_payloads.shape} ({PAYLOAD_DIM+1} payload values per record)")
+
     
 if __name__ == "__main__":
     main()
