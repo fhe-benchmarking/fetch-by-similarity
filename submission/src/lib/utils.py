@@ -2,7 +2,7 @@ import os
 
 from lattica_query.lattica_query_client import QueryClient
 
-from constants import TOKEN
+from lib.constants import TOKEN
 
 
 def get_query_client():
