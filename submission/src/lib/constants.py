@@ -3,6 +3,6 @@
 constants.py - Shared constants for FHE similarity benchmark
 """
 
-# Model ID for similarity search
-MODEL_ID = "similarityFetch"
+# token for similarity search
+TOKEN = "<YOUR_TOKEN>"
 PRECISION = 16

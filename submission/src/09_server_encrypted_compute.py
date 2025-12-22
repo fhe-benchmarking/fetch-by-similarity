@@ -8,6 +8,8 @@ import os
 from lattica_query.worker_api import LatticaWorkerAPI
 from lib.server_logger import server_print
 from lib.server_timer import ServerTimer
+from lib.constants import TOKEN
+
 
 def main():
     # Parse arguments
@@ -19,15 +21,6 @@ def main():
     instance_name = instance_names[size]
     io_dir = f"io/{instance_name}"
     encrypted_dir = f"{io_dir}/encrypted"
-    server_dir = f"{io_dir}/server"
-
-    # Load token from step 3
-    token_path = f"{server_dir}/token.txt"
-    if not os.path.exists(token_path):
-        raise FileNotFoundError(f"Token file not found: {token_path}. Make sure step 3 (key generation) was run first.")
-
-    with open(token_path, "r") as f:
-        token = f.read().strip()
 
     # Load encrypted query from step 8
     encrypted_query_path = f"{encrypted_dir}/query.bin"
@@ -43,7 +36,7 @@ def main():
 
     # Initialize worker API
     server_print("Initializing LatticaWorkerAPI...")
-    worker_api = LatticaWorkerAPI(token)
+    worker_api = LatticaWorkerAPI(TOKEN)
 
     # Run homomorphic computation
     server_print("Running homomorphic computation on Lattica server...")
@@ -60,6 +53,7 @@ def main():
         f.write(serialized_ct_res)
 
     server_print(f"Encrypted results saved to {encrypted_result_path}")
+
 
 if __name__ == "__main__":
     main()

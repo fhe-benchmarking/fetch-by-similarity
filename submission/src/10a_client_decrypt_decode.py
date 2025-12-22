@@ -9,12 +9,13 @@ import torch
 import json
 import base64
 
-from lattica_query.lattica_query_client import QueryClient
 from lattica_query.serialization.api_serialization_utils import load_proto_tensor
 import lattica_query.query_toolkit as toolkit_interface
 from harness.params import InstanceParams
 from lib.server_logger import server_print
 from lib.server_timer import ServerTimer
+from lib.utils import get_query_client
+
 
 def main():
     # Parse arguments
@@ -26,7 +27,6 @@ def main():
     io_dir = f"io/{instance_name}"
     encrypted_dir = f"{io_dir}/encrypted"
     key_dir = f"{io_dir}/keys"
-    server_dir = f"{io_dir}/server"
 
     # Initialize timer for logging
     timer = ServerTimer()
@@ -102,25 +102,9 @@ def main():
 
     # Additional paths needed for apply_clear
     dataset_dir = f"datasets/{instance_name}"
-    server_dir = f"{io_dir}/server"
-
-    # Load token for client initialization
-    token_path = f"{server_dir}/token.txt"
-    if not os.path.exists(token_path):
-        raise FileNotFoundError(
-            f"Token file not found: {token_path}. Make sure step 3 (key generation) was run first.")
-
-    with open(token_path, "r") as f:
-        token = f.read().strip()
 
     # Initialize QueryClient for apply_clear operation
-    server_print("Initializing QueryClient for apply_clear...")
-    if os.getenv('LATTICA_RUN_MODE') == 'LOCAL':
-        from lattica_query.dev_utils.lattica_query_client_local import \
-            LocalQueryClient
-        client = LocalQueryClient(token)
-    else:
-        client = QueryClient(token)
+    client = get_query_client()
 
     # Load the original query vector
     query_path = f"{dataset_dir}/query.bin"
@@ -140,7 +124,6 @@ def main():
     server_print(
         f"Loaded database with shape: {db.shape} for apply_clear")
 
-
     # Load the payloads for apply_clear operation
     payloads_path = f"{dataset_dir}/payloads.npy"
     if not os.path.exists(payloads_path):
@@ -151,9 +134,8 @@ def main():
     server_print(
         f"Loaded payloads with shape: {payloads.shape} for apply_clear")
 
-
     query_tensor = torch.from_numpy(query)
-    n_slots = 2**9
+    n_slots = 2**9 if instance_name == 'toy' else 2**15
     query_tensor = query_tensor.expand(n_slots // record_dim, record_dim).reshape(n_slots)
 
     # Extend query vector to match database column count
