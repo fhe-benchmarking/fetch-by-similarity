@@ -66,7 +66,7 @@ def main():
     )
 
     timer = ServerTimer()
-    n_slots = 2**9  # TODO: get from context
+    n_slots = 2**9 if instance_name == 'toy' else 2**15
     query_tensor = query_tensor.expand(n_slots // record_dim, record_dim).reshape(n_slots)
     timer.log_step(8.1, "Expand and reshape")
 
@@ -89,6 +89,7 @@ def main():
         f.write(serialized_ct)
 
     server_print(f"Encrypted query saved to {encrypted_query_path}")
+
 
 if __name__ == "__main__":
     main()

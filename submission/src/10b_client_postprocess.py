@@ -8,19 +8,20 @@ import numpy as np
 import torch
 
 from harness.params import PAYLOAD_DIM
+
 from lib.server_logger import server_print
 from lib.server_timer import ServerTimer
 from lib.constants import PRECISION
 
 
-def _post_process(raw_result):
+def _post_process(raw_result, n_cols, payload_dim):
     def _sort_results(a):
         # Sort by the second column (index 1)
         a = a[a[:, 1].argsort()]
         return a
 
     def _extract_final_results(a):
-        a = a.reshape(-1, 8).moveaxis(0, -1).reshape(8, -1, 8).moveaxis(1, 0).reshape(-1, 8)
+        a = a.reshape(-1, payload_dim, n_cols).moveaxis(-1, -2).reshape(-1, payload_dim)
         # Create a mask for rows that have any nonzero element
         MAX_VAL = 256
         valid_rows_mask = a[:, 0] > MAX_VAL * 1.4  # the marker row is expected to be 2 * MAX_VAL
@@ -53,7 +54,8 @@ def main():
     server_print(f"Loaded raw_results: shape: {raw_results.shape}, dtype: {raw_results.dtype}")
 
     # Post-processing
-    results = _post_process(raw_results)
+    n_cols = 8 if instance_name == 'toy' else 512  # n_cols = n_slots / 64
+    results = _post_process(raw_results, n_cols, PAYLOAD_DIM + 1)
     server_print(f"results shape: {results.shape}")
 
     # Remove marker from results
@@ -67,7 +69,7 @@ def main():
         server_print(f"Loaded clear_results: shape: {clear_results_raw.shape}, dtype: {clear_results_raw.dtype}")
 
         # Post-processing
-        clear_results = _post_process(clear_results_raw)
+        clear_results = _post_process(clear_results_raw, n_cols, PAYLOAD_DIM + 1)
         server_print(f"clear_results shape: {clear_results.shape}")
 
         # Check that number of elements match after post-processing
