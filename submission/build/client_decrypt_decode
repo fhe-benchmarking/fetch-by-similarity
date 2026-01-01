@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
+export PYTHONPATH=.
 exec python submission/src/10a_client_decrypt_decode.py "$@"

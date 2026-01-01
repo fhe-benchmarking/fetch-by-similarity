@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
+export PYTHONPATH=.
 exec python submission/src/10b_client_postprocess.py "$@"
