@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
+export PYTHONPATH=.
 exec python submission/src/04_client_encode_encrypt_db.py "$@"

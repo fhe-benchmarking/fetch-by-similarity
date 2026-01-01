@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
+export PYTHONPATH=.
 exec python submission/src/03_client_key_generation.py "$@"
