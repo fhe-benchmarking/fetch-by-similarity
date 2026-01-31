@@ -81,14 +81,14 @@ def main():
     utils.run_exe_or_python(harness_dir, "generate_dataset", *cmd_args)
     utils.log_step(1, "Dataset generation")
 
+    # 1.1 Communication: Get cryptographic context
+    if remote_be:
+        utils.run_exe_or_python(exec_dir, "server_get_params", str(size))
+        utils.log_step(1.1 , "Communication: Get cryptographic context")
+
     # 2. Client-side: Preprocess the dataset using exec_dir/client_preprocess_dataset
     utils.run_exe_or_python(exec_dir, "client_preprocess_dataset", *cmd_args)
     utils.log_step(2, "Dataset preprocessing")
-
-    # 2.1 Communication: Get cryptographic context
-    if remote_be:
-        utils.run_exe_or_python(exec_dir, "server_get_params", str(size))
-        # utils.log_step(2.1 , "Communication: Get cryptographic context")
 
     # 3. Client-side: Generate the cryptographic keys
     # Note: this does not use the rng seed above, it lets the implementation

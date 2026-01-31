@@ -9,7 +9,7 @@ PRECISION = 16
 MARKER_VALUE = 8192
 MAX_VAL = 256
 
-def init(argv, mute_logs=False):
+def init(argv, mute_logs=True):
     if mute_logs:
         devnull_fd = os.open(os.devnull, os.O_WRONLY)
         os.dup2(devnull_fd, 1)

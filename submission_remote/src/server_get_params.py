@@ -4,8 +4,10 @@ import pickle
 import submission_utils
 from lattica_query.auth import get_demo_token
 
-local_file_paths, _ = submission_utils.init(sys.argv)
+local_file_paths, instance_params = submission_utils.init(sys.argv)
 
+if instance_params.size != 0:
+    raise ValueError("Remote submission example available only for SIZE=0")
 
 # Get access_token for public model
 access_token = get_demo_token("similarityFetchToy")
