@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-export PYTHONPATH=.
-exec python submission/src/07_client_preprocess_query.py "$@"

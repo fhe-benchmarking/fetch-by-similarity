@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-export PYTHONPATH=.
-exec python submission/src/05_server_preprocess_dataset.py "$@"

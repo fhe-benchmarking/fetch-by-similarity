@@ -11,6 +11,7 @@ utils.py - Scaffolding code for running the submission.
 """
 
 import sys
+import os
 import platform
 import subprocess
 import json
@@ -35,6 +36,26 @@ def ensure_directories(rootdir: Path):
                   f"not found in {rootdir}")
             sys.exit(1)
 
+def build_submission(script_dir: Path, remote_be: bool):
+    """
+    Build the submission, including pulling dependencies as neeed
+    """
+    if remote_be:
+        subprocess.run(["pip", "install", "-r", "./submission_remote/requirements.txt"], check=True)
+    else:
+        # Clone and build OpenFHE if needed
+        subprocess.run([script_dir/"get_openfhe.sh"], check=True)
+        # CMake build of the submission itself
+        subprocess.run([script_dir/"build_task.sh", "./submission"], check=True)
+
+
+class TextFormat:
+    BOLD = "\033[1m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
+    RED = "\033[31m"
+    RESET = "\033[0m"
 
 def log_step(step_num: int, step_name: str, start: bool = False):
     """ 
@@ -58,7 +79,7 @@ def log_step(step_num: int, step_name: str, start: bool = False):
     _last_timestamp = now
 
     if not start:
-        print(f"{timestamp} [harness] {step_num}: {step_name} completed{elapsed_str}")
+        print(f"{TextFormat.BLUE}{timestamp} [harness] {step_num}: {step_name} completed{elapsed_str}{TextFormat.RESET}")
         _timestampsStr[step_name] = f"{round(elapsed_seconds, 4)}s"
         _timestamps[step_name] = elapsed_seconds
 
@@ -81,7 +102,7 @@ def log_size(path: Path, object_name: str, flag: bool = False, previous: int = 0
     if flag:
         size -= previous
 
-    print("         [harness]", object_name, "size:", human_readable_size(size))
+    print(f"{TextFormat.YELLOW}         [harness] {object_name} size: {human_readable_size(size)}{TextFormat.RESET}")
 
     _bandwidth[object_name] = human_readable_size(size)
     return size
@@ -107,3 +128,26 @@ def save_run(path: Path):
     }, open(path,"w"), indent=2)
 
     print("[total latency]", f"{round(sum(_timestamps.values()), 4)}s")
+
+def run_exe_or_python(base, file_name, *args, check=True):
+    """
+        If {base}/{file_name}.py exists, run it with the current Python.
+        Otherwise, run {base}/build/{file_name} as an executable.
+    """
+    py =  base / f"{file_name}.py"
+    exe = base / "build" / file_name
+    env = os.environ.copy()
+    print(f'{py=}, {exe=}')
+
+    if py.exists():
+        env["PYTHONPATH"] = "."
+        cmd = ["python3", py, *args]
+        print(f'py exists')
+    elif exe.exists():
+        cmd = [exe, *args]
+        print(f'exe exists')
+    else:
+        cmd = None
+        print(f'neither exists')
+    if cmd is not None:
+        subprocess.run(cmd, check=check, env=env)
