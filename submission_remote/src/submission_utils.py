@@ -71,24 +71,6 @@ def get_lattica_client(local_file_paths):
     return QueryClient(access_token)
 
 
-# class StdoutListener(io.TextIOBase):
-#     def __init__(self, real_stdout, target):
-#         self.real_stdout = real_stdout
-#         self.target = target
-#         self.saved_line = None
-#
-#     def write(self, s):
-#         if s.startswith(self.target):
-#             self.saved_line = s[len(self.target):].strip()
-#
-#     def get_as_dict(self):
-#         if self.saved_line is None:
-#             return {}
-#         return {"lines": self.saved_lines}
-#
-#     def flush(self):
-#         pass
-
 class StdoutListener(io.TextIOBase):
     def __init__(self, target):
         self.target = target
