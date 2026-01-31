@@ -1,9 +1,12 @@
+# Build artefacts
+*/build/
+
 # artefacts
 io/
 datasets/
 third_party/
 measurements/
-__pycache__/
+harness/__pycache__/
 
 # Prerequisites
 *.d
