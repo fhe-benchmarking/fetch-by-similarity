@@ -142,13 +142,15 @@ def main():
         utils.run_exe_or_python(exec_dir, "server_encrypted_compute", *cmd_args)
         utils.log_step(9, "Encrypted computation")
 
-        # remove seed arg
-        cmd_args = [x for i, x in enumerate(cmd_args)
-                if not (x == "--seed" or (i > 0 and cmd_args[i - 1] == "--seed"))]
 
         # 10. Client-side: decrypt and postprocess
         utils.run_exe_or_python(exec_dir, "client_decrypt_decode", *cmd_args)
+        utils.run_exe_or_python(exec_dir, "client_postprocess", *cmd_args)
         utils.log_step(10, "Result decryption and postprocessing")
+
+        # remove seed arg
+        cmd_args = [x for i, x in enumerate(cmd_args)
+                if not (x == "--seed" or (i > 0 and cmd_args[i - 1] == "--seed"))]
 
         # 11. Run the plaintext processing in cleartext_impl.py and verify_results
         utils.run_exe_or_python(harness_dir, "cleartext_impl", *cmd_args)
@@ -166,7 +168,8 @@ def main():
         # 13. Store measurements
         run_path = params.measuredir() / f"results-{run+1}.json"
         run_path.parent.mkdir(parents=True, exist_ok=True)
-        utils.save_run(run_path)
+        submission_report_path = io_dir / "server_reported_steps.json"
+        utils.save_run(run_path, submission_report_path)
 
     print(f"\nAll steps completed for the {instance_name(size)} dataset!")
 

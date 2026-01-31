@@ -10,6 +10,7 @@ verify_result.py - correctness oracle for cosine similarity
 import argparse
 import sys
 import numpy as np
+from utils import TextFormat
 
 # The payloads are vectors of 7 int16 numbers
 PAYLOAD_DIM = 7
@@ -37,19 +38,16 @@ def main():
         result_data = np.fromfile(args.result_file, dtype=np.int_)
 
         if np.array_equal(expected_data, result_data):
-            print(f"         [harness] PASS (result={expected_data})")
+            print(f"{TextFormat.GREEN}         [harness] PASS (result={expected_data}){TextFormat.RESET}")
             sys.exit(0)
         else:
-            print(f"         [harness] FAIL (expected {expected_data}",
+            print(f"{TextFormat.RED}         [harness] FAIL (expected {expected_data}){TextFormat.RESET}",
                   f"but found {result_data})")
             sys.exit(1)
 
     # Read the expected and result binary files containing payload vectors
     expected_data = np.fromfile(args.expected_file, dtype=np.int16)
     result_data = np.fromfile(args.result_file, dtype=np.int16)
-
-    print(f'{expected_data=}')
-    print(f'{result_data=}')
 
     # Reshape into payload vectors
     expected_payloads = expected_data.reshape(-1, PAYLOAD_DIM)
@@ -60,24 +58,24 @@ def main():
 
     # If there are more than 32 expected results, always report success
     if num_expected > 32:
-        print(f"         [harness] PASS (Too many matches: {num_expected} > 32,",
-              "skipping detailed comparison)")
+        print(f"{TextFormat.GREEN}         [harness] PASS (Too many matches: {num_expected} > 32,",
+              f"skipping detailed comparison){TextFormat.RESET}")
         sys.exit(0)
 
     # Otherwise, compare the payloads
     if num_expected != num_results:
-        print(f"         [harness] FAIL (Expected {num_expected} payloads, got {num_results})")
+        print(f"{TextFormat.RED}         [harness] FAIL (Expected {num_expected} payloads, got {num_results}){TextFormat.RESET}")
         sys.exit(1)
 
     # Compare each payload vector
     for i in range(num_expected):
         if not np.array_equal(expected_payloads[i], result_payloads[i]):
-            print(f"         [harness] FAIL (Payload {i} mismatch)")
+            print(f"{TextFormat.RED}         [harness] FAIL (Payload {i} mismatch){TextFormat.RESET}")
             print(f"  Expected: {expected_payloads[i]}")
             print(f"  Got:      {result_payloads[i]}")
             sys.exit(1)
 
-    print(f"         [harness] PASS (All {num_expected} payload vectors match)")
+    print(f"{TextFormat.GREEN}         [harness] PASS (All {num_expected} payload vectors match){TextFormat.RESET}")
     sys.exit(0)
 
 

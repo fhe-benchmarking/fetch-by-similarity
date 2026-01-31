@@ -55,6 +55,7 @@ class TextFormat:
     YELLOW = "\033[33m"
     BLUE = "\033[34m"
     RED = "\033[31m"
+    PURPLE = "\033[35m"
     RESET = "\033[0m"
 
 def log_step(step_num: int, step_name: str, start: bool = False):
@@ -115,16 +116,26 @@ def human_readable_size(n: int):
         n /= 1024
     return f"{n:.1f}P"
 
-def save_run(path: Path):
+def save_run(path: Path, submission_report_path: Path):
     """Save the timing from the current run to disk"""
     global _timestamps
     global _timestampsStr
     global _bandwidth
 
+    _timestampsStr["Total"] = f"{round(sum(_timestamps.values()), 4)}s"
+
+    _timestampsRemote = {}
+    if submission_report_path.exists():
+        with open(submission_report_path, "r") as f:
+            server_reported_times = json.load(f)
+            for step_name, time_str in server_reported_times.items():
+                _timestampsRemote[step_name] = f"{time_str}s"
+                print(f"{TextFormat.PURPLE}         [submission] {step_name}: {time_str}s{TextFormat.RESET}")
+
     json.dump({
-        "total_latency_s": round(sum(_timestamps.values()), 4),
-        "per_stage": _timestampsStr,
-        "bandwidth": _bandwidth,
+        "Timing": _timestampsStr,
+        "Bandwidth": _bandwidth,
+        "Remote Report": _timestampsRemote,
     }, open(path,"w"), indent=2)
 
     print("[total latency]", f"{round(sum(_timestamps.values()), 4)}s")
@@ -141,12 +152,9 @@ def run_exe_or_python(base, file_name, *args, check=True):
     if py.exists():
         env["PYTHONPATH"] = "."
         cmd = ["python3", py, *args]
-        print(f'py exists')
     elif exe.exists():
         cmd = [exe, *args]
-        print(f'exe exists {cmd=}')
     else:
         cmd = None
-        print(f'neither exists')
     if cmd is not None:
         subprocess.run(cmd, check=check, env=env)

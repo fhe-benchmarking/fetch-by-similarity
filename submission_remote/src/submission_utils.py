@@ -3,6 +3,7 @@ import pickle
 from lattica_query.lattica_query_client import QueryClient
 from harness.params import InstanceParams as HarnessInstanceParams, instance_name, PAYLOAD_DIM
 import os
+import io
 
 # constants used in pre and post processing
 PRECISION = 16
@@ -49,7 +50,9 @@ class LocalFilePaths:
         self.PK_DIR                 = IO_DIR / "keys"
         self.CT_UPLOAD_DIR          = IO_DIR / "encrypted"
         self.CT_DOWNLOAD_DIR        = IO_DIR / "ciphertexts_download"
+        self.PATH_RAW_RESULT        = IO_DIR / "raw_result.pkl"
         self.PREDICTIONS_PATH       = IO_DIR / "results.bin"
+        self.SERVER_TIMES_PATH      = IO_DIR / "server_reported_steps.json"
 
         self.PK_DIR.mkdir(parents=True, exist_ok=True)
         self.CT_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -66,3 +69,36 @@ class LocalFilePaths:
 def get_lattica_client(local_file_paths):
     access_token = pickle.load(open(local_file_paths.PATH_ACCESS_TOKEN, "rb"))
     return QueryClient(access_token)
+
+
+# class StdoutListener(io.TextIOBase):
+#     def __init__(self, real_stdout, target):
+#         self.real_stdout = real_stdout
+#         self.target = target
+#         self.saved_line = None
+#
+#     def write(self, s):
+#         if s.startswith(self.target):
+#             self.saved_line = s[len(self.target):].strip()
+#
+#     def get_as_dict(self):
+#         if self.saved_line is None:
+#             return {}
+#         return {"lines": self.saved_lines}
+#
+#     def flush(self):
+#         pass
+
+class StdoutListener(io.TextIOBase):
+    def __init__(self, target):
+        self.target = target
+        self.saved_report = None
+
+    def write(self, s):
+        if s.startswith(self.target):
+            s = s[len(self.target):].strip()
+            # s is in the format "network;dur=2807, logic;dur=339, instance;dur=306, worker;dur=219"
+            self.saved_report = {
+                part.split(";")[0].strip(): int(part.split("dur=")[1])
+                for part in s.split(",")
+            }
