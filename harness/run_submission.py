@@ -144,7 +144,6 @@ def main():
 
         # 10. Client-side: decrypt and postprocess
         utils.run_exe_or_python(exec_dir, "client_decrypt_decode", *cmd_args)
-        utils.run_exe_or_python(exec_dir, "client_postprocess", *cmd_args)
         utils.log_step(10, "Result decryption and postprocessing")
 
         # 11. Run the plaintext processing in cleartext_impl.py and verify_results

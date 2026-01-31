@@ -1,7 +1,5 @@
 # Build artefacts
 */build/
-
-# artefacts
 io/
 datasets/
 third_party/
@@ -49,4 +47,3 @@ harness/__pycache__/
 # Virtual environments
 virtualenv
 
-/fetch_by_similarity.egg-info/

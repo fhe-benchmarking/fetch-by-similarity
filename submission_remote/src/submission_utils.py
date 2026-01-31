@@ -49,7 +49,6 @@ class LocalFilePaths:
         self.PK_DIR                 = IO_DIR / "keys"
         self.CT_UPLOAD_DIR          = IO_DIR / "encrypted"
         self.CT_DOWNLOAD_DIR        = IO_DIR / "ciphertexts_download"
-        self.PATH_RAW_RESULT        = IO_DIR / "raw_result.pkl"
         self.PREDICTIONS_PATH       = IO_DIR / "results.bin"
 
         self.PK_DIR.mkdir(parents=True, exist_ok=True)
