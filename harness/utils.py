@@ -141,9 +141,12 @@ def run_exe_or_python(base, file_name, *args, check=True):
     if py.exists():
         env["PYTHONPATH"] = "."
         cmd = ["python3", py, *args]
+        print(f'py exists')
     elif exe.exists():
         cmd = [exe, *args]
+        print(f'exe exists {cmd=}')
     else:
         cmd = None
+        print(f'neither exists')
     if cmd is not None:
         subprocess.run(cmd, check=check, env=env)

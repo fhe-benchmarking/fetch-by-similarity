@@ -2,7 +2,7 @@
 
 This repository contains a reference implementation of the
 Fetch-by-cosine-similarity workload of the FHE benchmarking suite of
-[HomomorphicEncrypption.org](https://www.HomomorphicEncryption.org).
+[HomomorphicEncryption.org](https://www.HomomorphicEncryption.org).
 
 Submitters need to clone/fork this repository, then replace the content of
 the `submission` or `submission_remote` subdirectory by their own implementation.

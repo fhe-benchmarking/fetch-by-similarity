@@ -48,6 +48,9 @@ def main():
     expected_data = np.fromfile(args.expected_file, dtype=np.int16)
     result_data = np.fromfile(args.result_file, dtype=np.int16)
 
+    print(f'{expected_data=}')
+    print(f'{result_data=}')
+
     # Reshape into payload vectors
     expected_payloads = expected_data.reshape(-1, PAYLOAD_DIM)
     result_payloads = result_data.reshape(-1, PAYLOAD_DIM)
