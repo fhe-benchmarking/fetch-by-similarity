@@ -26,9 +26,9 @@ pickle.dump(ct_res, open(local_file_paths.get_ct_download_path("query"), "wb"))
 # Parse and save server timing report
 server_report = sys.stdout.saved_report
 server_report_for_harness = {
-    "GPU time":      server_report["worker"]                             / 1000.0,
-    "Queue time":   (server_report["logic"]   - server_report["worker"]) / 1000.0,
-    "Network time": (server_report["network"]  - server_report["logic"]) / 1000.0,
+    "Encrypted computation":      server_report["worker"]                             / 1000.0,
+    "Queue time":                (server_report["logic"]   - server_report["worker"]) / 1000.0,
+    "Network time":              (server_report["network"]  - server_report["logic"]) / 1000.0,
 }
 with open(local_file_paths.SERVER_TIMES_PATH, "w") as f:
     json.dump(server_report_for_harness, f)

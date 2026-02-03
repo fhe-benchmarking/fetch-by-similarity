@@ -97,6 +97,8 @@ def main():
     utils.run_exe_or_python(exec_dir, "client_key_generation", *cmd_args)
     utils.log_step(3, "Key Generation")
 
+    # Report size of keys
+    utils.log_size(io_dir / "keys", "Public and evaluation keys")
 
     # 3.1 Communication: Upload evaluation key
     if remote_be:
@@ -107,14 +109,14 @@ def main():
     utils.run_exe_or_python(exec_dir, "client_encode_encrypt_db", *cmd_args)
     utils.log_step(4, "Dataset encoding and encryption")
 
+    # Report size of encrypted data
+    utils.log_size(io_dir / "encrypted", "Encrypted database")
+
     # 4.1 Communication: Upload encrypted database
     if remote_be:
         utils.run_exe_or_python(exec_dir, "server_upload_db", str(size))
         utils.log_step(4.1 , "Communication: Upload encrypted database")
 
-    # Report size of keys and encrypted data
-    utils.log_size(io_dir / "keys", "Public and evaluation keys")
-    utils.log_size(io_dir / "encrypted", "Encrypted database")
 
     # 5. Server-side: Preprocess the encrypted dataset using exec_dir/server_preprocess_dataset
     utils.run_exe_or_python(exec_dir, "server_preprocess_dataset", *cmd_args)

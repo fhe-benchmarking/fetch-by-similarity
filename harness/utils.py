@@ -135,7 +135,7 @@ def save_run(path: Path, submission_report_path: Path):
     json.dump({
         "Timing": _timestampsStr,
         "Bandwidth": _bandwidth,
-        "Remote Report": _timestampsRemote,
+        "Server Reported": _timestampsRemote,
     }, open(path,"w"), indent=2)
 
     print("[total latency]", f"{round(sum(_timestamps.values()), 4)}s")
