@@ -56,7 +56,7 @@ def main():
     else:
         print("          returning matching payloads")
 
-    # 0. Generate the dataset (and centers) using harness/generate_dataset.py
+    # 0. Generate the dataset (and centers) using generate_dataset.py
 
     # Remove and re-create IO directory
     io_dir = params.iodir()
@@ -86,7 +86,7 @@ def main():
         utils.run_exe_or_python(exec_dir, "server_get_params", str(size))
         utils.log_step(1.1 , "Communication: Get cryptographic context")
 
-    # 2. Client-side: Preprocess the dataset using exec_dir/client_preprocess_dataset
+    # 2. Client-side: Preprocess the dataset using client_preprocess_dataset
     utils.run_exe_or_python(exec_dir, "client_preprocess_dataset", *cmd_args)
     utils.log_step(2, "Dataset preprocessing")
 
@@ -118,7 +118,7 @@ def main():
         utils.log_step(4.1 , "Communication: Upload encrypted database")
 
 
-    # 5. Server-side: Preprocess the encrypted dataset using exec_dir/server_preprocess_dataset
+    # 5. Server-side: Preprocess the encrypted dataset using server_preprocess_dataset
     utils.run_exe_or_python(exec_dir, "server_preprocess_dataset", *cmd_args)
     utils.log_step(5, "Encrypted dataset preprocessing")
 
@@ -127,7 +127,7 @@ def main():
         if args.num_runs > 1:
             print(f"\n         [harness] Run {run+1} of {args.num_runs}")
 
-        # 6. Client-side: Generate a new random query using harness/generate_query.py
+        # 6. Client-side: Generate a new random query using generate_query.py
         utils.run_exe_or_python(harness_dir, "generate_query", *cmd_args)
         utils.log_step(6, "Query generation")
 
@@ -140,7 +140,7 @@ def main():
         utils.log_step(8, "Query encryption")
         utils.log_size(io_dir / "encrypted" / "query.bin" , "Encrypted query")
 
-        # 9. Server-side: run exec_dir/server_encrypted_compute
+        # 9. Server-side: run server_encrypted_compute
         utils.run_exe_or_python(exec_dir, "server_encrypted_compute", *cmd_args)
         utils.log_step(9, "Encrypted computation")
 

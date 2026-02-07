@@ -40,7 +40,10 @@ In this mode:
   - Cryptographic context setup and preprocessing of the homomorphic workload
   - Homomorphic DB cosine similarity search and retrieval
 
-This execution mode is enabled by passing the `--remote` flag to the harness.
+This execution mode is enabled by passing the `--remote` flag to the harness, and the client-side implementation is under `submission_remote\`.
+
+This reference repository contains two implementations, one local and one remote, serving an examples of how to use them.
+Note that closed-source software submissions can use either mode: Either use shims under `submission_remote/` that call a server running the main implementation, or use shims under `submission/` that call a pre-compiled library or a container. That library/container must be included with the submission (e.g. using Github packages).
 
 ## Running the fetch-by-similarity workload
 #### Dependencies
@@ -61,7 +64,7 @@ pip install -r requirements.txt
 python3 harness/run_submission.py -h  # Information about command-line options
 ```
 
-The harness script `harness/run_submission.py` will attempt to build the submission itself, if it is not already built. If already built, it will use the same project without re-building it (unless the code has changed). An example run is provided below.
+The harness script `harness/run_submission.py` will attempt to build the submission itself, if it is not already built. If already built, it will use the same built code without re-building it (unless the code has changed). An example run is provided below.
 
 ```console
 $ python3 harness/run_submission.py -h
