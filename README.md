@@ -2,52 +2,73 @@
 
 This repository contains a reference implementation of the
 Fetch-by-cosine-similarity workload of the FHE benchmarking suite of
-[HomomorphicEncrypption.org].
+[HomomorphicEncryption.org](https://www.HomomorphicEncryption.org).
 
-Submitters need to clone/fork this repository, then replace the content of
-the `submission` subdirectory by their own implementation.
+Submitters need to fork this repository, then replace the content of
+the `submission` or `submission_remote` subdirectory by their own implementation.
 They also may need to changes or replace the script `scripts/build_task.sh`
 to account for dependencies and build environment for their submission.
 
-## Dependencies
+## Execution Modes
 
-The harness requires python and some corresponding packages specified in `requirements.txt`. 
-```console
-python3 -m venv virtualenv
-source ./virtualenv/bin/activate
-pip3 install -r requirements.txt
-```
+The Fetch-by-cosine-similarity benchmark supports two execution modes:
 
-This implementation requires OpenFHE v1.3.x, the default build environment
-assumes that the correct version of OpenFHE is installed locally at
-`/third-party/openfhe`.
+### Local Execution (Default)
 
-### Installing OpenFHE
+All steps are executed on a single machine:
+- Cryptographic context setup and preprocessing of the homomorphic workload
+- Key generation
+- DB preprocessing and encryption
+- Query preprocessing and encryption
+- Homomorphic DB cosine similarity search and retrieval
+- Decryption and postprocessing
 
-The installation steps for OpenFHE are described [here](https://openfhe-development.readthedocs.io/en/latest/sphinx_rsts/intro/installation/installation.html).  
+This corresponds to the reference submission in `submission/`.
 
-If OpenFHE is installed at a different location, that location should be
-specified using the `-CMAKE_PREFIX_PATH` variable in `build_task.sh`.
-(In the case of a system-wide installation at `/usr/local/`, unset the
-`-CMAKE_PREFIX_PATH` variable.)
+### Remote Backend Execution (Optional)
 
-For users who want to do a local fresh install, they should run `get_openfhe.sh`,
-which is designed to install the specified version of OpenFHE at the
-`third-party` subdirectory in the current directory.
-By default, `build_task.sh` looks for the library at this location. See more
-instructions in `submission/CMakeLists.txt` if `build_task.sh` does not succeed.
+Some FHE deployments separate client-side and server-side responsibilities.  
+In this mode:
 
-```console
-./scripts/get_openfhe.sh
-```
+- **Client-side (local):**
+  - Key generation
+  - DB preprocessing and encryption
+  - Query preprocessing and encryption
+  - Decryption and postprocessing
+
+- **Server-side (remote):**
+  - Cryptographic context setup and preprocessing of the homomorphic workload
+  - Homomorphic DB cosine similarity search and retrieval
+
+This execution mode is enabled by passing the `--remote` flag to the harness, and the client-side implementation is under `submission_remote\`.
+
+This reference repository contains two implementations, one local and one remote, serving an examples of how to use them.
+Note that closed-source software submissions can use either mode: Either use shims under `submission_remote/` that call a server running the main implementation, or use shims under `submission/` that call a pre-compiled library or a container. That library/container must be included with the submission (e.g. using Github packages).
 
 ## Running the fetch-by-similarity workload
+#### Dependencies
+- Python 3.12+
+- The build environment for local execution depends on OpenFHE being installed as specificied in `scripts/get_openfhe.sh` and `submission/CMakeLists.txt`. See https://github.com/openfheorg/openfhe-development#installation.
+- The build environment for remote-backend execution depends on lattica-query being installed as specified in `submission_remote/requirements.txt`. See https://platformdocs.lattica.ai/how-to-guides/client-installation/how-to-install-query-client. Should be installed on a `linux_x86_64` machine.
 
-An example run is provided below.
+#### Execution
+To run the workload, clone and install dependencies:
+```console
+git clone https://github.com/fhe-benchmarking/fetch-by-similarity.git
+cd fetch-by-similarity
+
+python -m venv virtualenv
+source ./virtualenv/bin/activate
+pip install -r requirements.txt
+
+python3 harness/run_submission.py -h  # Information about command-line options
+```
+
+The harness script `harness/run_submission.py` will attempt to build the submission itself, if it is not already built. If already built, it will use the same built code without re-building it (unless the code has changed). An example run is provided below.
 
 ```console
 $ python3 harness/run_submission.py -h
-usage: run_submission.py [-h] [--num_runs NUM_RUNS] [--seed SEED] [--count_only] {0,1,2,3}
+usage: run_submission.py [-h] [--num_runs NUM_RUNS] [--seed SEED] [--count_only] [--remote] {0,1,2,3}
 
 Run the fetch-by-similarity FHE benchmark.
 
@@ -59,6 +80,7 @@ options:
   --num_runs NUM_RUNS  Number of times to run steps 4-9 (default: 1)
   --seed SEED          Random seed for dataset and query generation
   --count_only         Only count # of matches, do not return payloads
+  --remote             Specify if to run in remote-backend mode
 $
 $ python ./harness/run_submission.py 0 --seed 12345 --num_runs 2
 -- The CXX compiler identification is GNU 13.3.0
@@ -148,6 +170,8 @@ deactivate
     ├─ LICENSE.md  # Optional software license (if different from Apache v2)
     ├─ docs/       # Optional: additional documentation
     └─ [...]
+└─ submission_remote/  # This is where the remote-backend workload implementation lives
+└─ [...]
 ```
 Submitters must overwrite the contents of the `scripts` and `submissions`
 subdirectories.
@@ -165,10 +189,13 @@ Each file can take as argument the test case size.
 
 | Stage executables                | Description |
 |----------------------------------|-------------|
+| `server_get_params`              | (Optional) Get cryptographic context from a remote server.
 | `client_key_generation`          | Generate all key material and cryptographic context at the client.           
+| `server_upload_ek`               | (Optional) Upload evaluation key to a remote backend.  
 | `client_preprocess_dataset`      | (Optional) Any in the clear computations the client wants to apply over the dataset/model.
 | `client_preprocess_query`        | (Optional) Any in the clear computations the client wants to apply over the query/input.
 | `client_encode_encrypt_db`       | (Optional) Plaintext encoding and encryption of the dataset/model at the client.
+| `server_upload_db`               | (Optional) Upload encrypted DB to a remote backend.
 | `client_encode_encrypt_query`    | Plaintext encoding and encryption of the query/input at the client.
 | `server_preprocess_dataset`      | (Optional) Any in the clear or encrypted computations the server wants to apply over the dataset/model.
 | `server_encrypted_compute`       | The computation the server applies to achieve the workload solution over encrypted daa.

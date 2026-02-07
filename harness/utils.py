@@ -11,6 +11,7 @@ utils.py - Scaffolding code for running the submission.
 """
 
 import sys
+import os
 import platform
 import subprocess
 import json
@@ -35,6 +36,27 @@ def ensure_directories(rootdir: Path):
                   f"not found in {rootdir}")
             sys.exit(1)
 
+def build_submission(script_dir: Path, remote_be: bool):
+    """
+    Build the submission, including pulling dependencies as neeed
+    """
+    if remote_be:
+        subprocess.run(["pip", "install", "-r", "./submission_remote/requirements.txt"], check=True)
+    else:
+        # Clone and build OpenFHE if needed
+        subprocess.run([script_dir/"get_openfhe.sh"], check=True)
+        # CMake build of the submission itself
+        subprocess.run([script_dir/"build_task.sh", "./submission"], check=True)
+
+
+class TextFormat:
+    BOLD = "\033[1m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    BLUE = "\033[34m"
+    RED = "\033[31m"
+    PURPLE = "\033[35m"
+    RESET = "\033[0m"
 
 def log_step(step_num: int, step_name: str, start: bool = False):
     """ 
@@ -58,7 +80,7 @@ def log_step(step_num: int, step_name: str, start: bool = False):
     _last_timestamp = now
 
     if not start:
-        print(f"{timestamp} [harness] {step_num}: {step_name} completed{elapsed_str}")
+        print(f"{TextFormat.BLUE}{timestamp} [harness] {step_num}: {step_name} completed{elapsed_str}{TextFormat.RESET}")
         _timestampsStr[step_name] = f"{round(elapsed_seconds, 4)}s"
         _timestamps[step_name] = elapsed_seconds
 
@@ -81,7 +103,7 @@ def log_size(path: Path, object_name: str, flag: bool = False, previous: int = 0
     if flag:
         size -= previous
 
-    print("         [harness]", object_name, "size:", human_readable_size(size))
+    print(f"{TextFormat.YELLOW}         [harness] {object_name} size: {human_readable_size(size)}{TextFormat.RESET}")
 
     _bandwidth[object_name] = human_readable_size(size)
     return size
@@ -94,16 +116,45 @@ def human_readable_size(n: int):
         n /= 1024
     return f"{n:.1f}P"
 
-def save_run(path: Path):
+def save_run(path: Path, submission_report_path: Path):
     """Save the timing from the current run to disk"""
     global _timestamps
     global _timestampsStr
     global _bandwidth
 
+    _timestampsStr["Total"] = f"{round(sum(_timestamps.values()), 4)}s"
+
+    _timestampsRemote = {}
+    if submission_report_path.exists():
+        with open(submission_report_path, "r") as f:
+            server_reported_times = json.load(f)
+            for step_name, time_str in server_reported_times.items():
+                _timestampsRemote[step_name] = f"{time_str}s"
+                print(f"{TextFormat.PURPLE}         [submission] {step_name}: {time_str}s{TextFormat.RESET}")
+
     json.dump({
-        "total_latency_s": round(sum(_timestamps.values()), 4),
-        "per_stage": _timestampsStr,
-        "bandwidth": _bandwidth,
+        "Timing": _timestampsStr,
+        "Bandwidth": _bandwidth,
+        "Server Reported": _timestampsRemote,
     }, open(path,"w"), indent=2)
 
     print("[total latency]", f"{round(sum(_timestamps.values()), 4)}s")
+
+def run_exe_or_python(base, file_name, *args, check=True):
+    """
+        If {base}/{file_name}.py exists, run it with the current Python.
+        Otherwise, run {base}/build/{file_name} as an executable.
+    """
+    py =  base / f"{file_name}.py"
+    exe = base / "build" / file_name
+    env = os.environ.copy()
+
+    if py.exists():
+        env["PYTHONPATH"] = "."
+        cmd = ["python3", py, *args]
+    elif exe.exists():
+        cmd = [exe, *args]
+    else:
+        cmd = None
+    if cmd is not None:
+        subprocess.run(cmd, check=check, env=env)

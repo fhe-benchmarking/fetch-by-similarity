@@ -47,3 +47,6 @@ harness/__pycache__/
 # Virtual environments
 virtualenv
 
+# Remote-submission artifacts
+ek.lpk
+submission_remote/__pycache__/
