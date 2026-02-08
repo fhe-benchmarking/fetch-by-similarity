@@ -71,11 +71,12 @@ def main():
 
     # Common command-line arguments for all steps
     cmd_args = [str(size), ]
-    if args.seed is not None:  # Use seed if provided
-        gendata_seed = rng.integers(0,0x7fffffff)
-        cmd_args.extend(["--seed", str(gendata_seed)])
     if args.count_only:
         cmd_args.extend(["--count_only"])
+    query_args = cmd_args      # Query steps should not get the global seed
+    if args.seed is not None:  # Use seed if provided
+        generic_seed = rng.integers(0,0x7fffffff)
+        cmd_args.extend(["--seed", str(generic_seed)])
 
     # 1. Client-side: Generate the datasets
     utils.run_exe_or_python(harness_dir, "generate_dataset", *cmd_args)
@@ -128,30 +129,34 @@ def main():
             print(f"\n         [harness] Run {run+1} of {args.num_runs}")
 
         # 6. Client-side: Generate a new random query using generate_query.py
-        utils.run_exe_or_python(harness_dir, "generate_query", *cmd_args)
+        this_query_args = query_args
+        if args.seed is not None:  # Use dervied seed if seed argument is provided
+            genqry_seed = rng.integers(0,0x7fffffff)
+            this_query_args.extend(["--seed", str(genqry_seed)])
+        utils.run_exe_or_python(harness_dir, "generate_query", *this_query_args)
         utils.log_step(6, "Query generation")
 
         # 7. Client-side: preprocess query
-        utils.run_exe_or_python(exec_dir, "client_preprocess_query", *cmd_args)
+        utils.run_exe_or_python(exec_dir, "client_preprocess_query", *this_query_args)
         utils.log_step(7, "Query preprocessing")
 
         # 8. Client-side: Encrypt the query
-        utils.run_exe_or_python(exec_dir, "client_encode_encrypt_query", *cmd_args)
+        utils.run_exe_or_python(exec_dir, "client_encode_encrypt_query", *this_query_args)
         utils.log_step(8, "Query encryption")
         utils.log_size(io_dir / "encrypted" / "query.bin" , "Encrypted query")
 
         # 9. Server-side: run server_encrypted_compute
-        utils.run_exe_or_python(exec_dir, "server_encrypted_compute", *cmd_args)
+        utils.run_exe_or_python(exec_dir, "server_encrypted_compute", *this_query_args)
         utils.log_step(9, "Encrypted computation")
 
 
         # 10. Client-side: decrypt and postprocess
-        utils.run_exe_or_python(exec_dir, "client_decrypt_decode", *cmd_args)
-        utils.run_exe_or_python(exec_dir, "client_postprocess", *cmd_args)
+        utils.run_exe_or_python(exec_dir, "client_decrypt_decode", *this_query_args)
+        utils.run_exe_or_python(exec_dir, "client_postprocess", *this_query_args)
         utils.log_step(10, "Result decryption and postprocessing")
 
         # 11. Run the plaintext processing in cleartext_impl.py and verify_results
-        utils.run_exe_or_python(harness_dir, "cleartext_impl", *cmd_args)
+        utils.run_exe_or_python(harness_dir, "cleartext_impl", *this_query_args)
 
         # 12. Verify results
         expected_file = params.datadir() / "expected.bin"
@@ -161,7 +166,7 @@ def main():
             print(f"Error: Result file {result_file} not found")
             sys.exit(1)
 
-        utils.run_exe_or_python(harness_dir, "verify_result", str(expected_file), str(result_file), *cmd_args[1:])  # skip size arg
+        utils.run_exe_or_python(harness_dir, "verify_result", str(expected_file), str(result_file), *this_query_args[1:])  # skip size arg
 
         # 13. Store measurements
         run_path = params.measuredir() / f"results-{run+1}.json"
