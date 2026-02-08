@@ -94,7 +94,7 @@ $
 -- OpenFHE Native Backend size: 64
 -- Configuring done (0.0s)
 -- Generating done (0.0s)
--- Build files have been written to: /home/shaih/fhe-benchmarking/fetch-by-similarity/submission/build
+-- Build files have been written to: /home/ubuntu/fhe-benchmarking/fetch-by-similarity/submission/build
 [  8%] Built target client_preprocess_dataset
 [ 17%] Built target client_preprocess_query
 [ 26%] Built target server_preprocess_dataset
