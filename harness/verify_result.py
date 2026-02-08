@@ -30,7 +30,7 @@ def main():
     parser.add_argument('--count_only', action='store_true',
                         help='Only # of matches, not payloads')
 
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
 
     if args.count_only: # not payloads
         # Read the expected and result binary files, containing just a counter

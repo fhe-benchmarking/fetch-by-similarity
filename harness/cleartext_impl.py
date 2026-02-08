@@ -32,7 +32,7 @@ def main():
     parser.add_argument('--count_only', action='store_true',
                         help='Only count # of matches, do not return payloads')
 
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
     size = args.size
 
     # Use params.py to get instance parameters

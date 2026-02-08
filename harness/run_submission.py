@@ -31,7 +31,7 @@ def main():
     parser.add_argument('--remote', action='store_true',
                         help='Run example submission in remote backend mode')
 
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
     size = args.size
     remote_be = args.remote
 

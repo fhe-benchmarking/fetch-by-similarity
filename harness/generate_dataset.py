@@ -72,7 +72,7 @@ def main():
                         help='Dataset size (0-toy/1-small/2-medium/3-large)')
     parser.add_argument('--seed', type=int, help='Random seed for reproducibility')
     
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
     size = args.size
     
     # Set random seed if provided

@@ -19,7 +19,7 @@ from datetime import datetime
 from pathlib import Path
 
 # Global variable to track the last timestamp
-_last_timestamp: datetime = None
+_last_timestamp: datetime | None = None
 # Global variable to store measured times
 _timestamps = {}
 _timestampsStr = {}
@@ -58,10 +58,11 @@ class TextFormat:
     PURPLE = "\033[35m"
     RESET = "\033[0m"
 
-def log_step(step_num: int, step_name: str, start: bool = False):
+def log_step(step_num: float, step_name: str, start: bool = False):
     """ 
     Helper function to print timestamp after each step with second precision 
     """
+    # step_num is float to allow Step 1.1 and similar
     global _last_timestamp
     global _timestamps
     global _timestampsStr
@@ -113,8 +114,8 @@ def human_readable_size(n: int):
     for unit in ["B","K","M","G","T"]:
         if n < 1024:
             return f"{n:.1f}{unit}"
-        n /= 1024
-    return f"{n:.1f}P"
+        n_float = n /1024
+    return f"{n_float:.1f}P"
 
 def save_run(path: Path, submission_report_path: Path):
     """Save the timing from the current run to disk"""
