@@ -40,10 +40,9 @@ In this mode:
   - Cryptographic context setup and preprocessing of the homomorphic workload
   - Homomorphic DB cosine similarity search and retrieval
 
-This execution mode is enabled by passing the `--remote` flag to the harness, and the client-side implementation is under `submission_remote\`.
+This execution mode is enabled by passing the `--remote` flag to the harness, and the client-side implementation is under `submission_remote/`.
 
-This reference repository contains two implementations, one local and one remote, serving an examples of how to use them.
-Note that closed-source software submissions can use either mode: Either use shims under `submission_remote/` that call a server running the main implementation, or use shims under `submission/` that call a pre-compiled library or a container. That library/container must be included with the submission (e.g. using Github packages).
+This reference repository contains two implementations, one local and one remote, serving as examples of how to use them. Note that closed-source software submissions can use either mode: They can use shims under `submission_remote/` that call a back-end server running the main implementation, or use shims under `submission/` that call a pre-compiled library or a container. That library/container must be included with the submission (e.g. using Github packages).
 
 ## Running the fetch-by-similarity workload
 #### Dependencies
@@ -64,11 +63,14 @@ pip install -r requirements.txt
 python3 harness/run_submission.py -h  # Information about command-line options
 ```
 
-The harness script `harness/run_submission.py` will attempt to build the submission itself, if it is not already built. If already built, it will use the same built code without re-building it (unless the code has changed). An example run is provided below.
+The harness script `harness/run_submission.py` will attempt to build the submission itself, if it is not already built. If already built, it will use the same built code without re-building it, unless the code has changed. (By default the reference code will also build the OpenFHE library in a subdirectory, you can comment out some line in the file `./scripts/get_openfhe.sh` if you want to use system-level openfhe instead.)
+
+An example run is provided below.
 
 ```console
-$ python3 harness/run_submission.py -h
-usage: run_submission.py [-h] [--num_runs NUM_RUNS] [--seed SEED] [--count_only] [--remote] {0,1,2,3}
+(virtualenv) $ python3 harness/run_submission.py -h
+usage: run_submission.py [-h] [--num_runs NUM_RUNS] [--seed SEED] [--count_only] [--remote]
+                         {0,1,2,3}
 
 Run the fetch-by-similarity FHE benchmark.
 
@@ -80,67 +82,89 @@ options:
   --num_runs NUM_RUNS  Number of times to run steps 4-9 (default: 1)
   --seed SEED          Random seed for dataset and query generation
   --count_only         Only count # of matches, do not return payloads
-  --remote             Specify if to run in remote-backend mode
+  --remote             Run example submission in remote backend mode
 $
-$ python ./harness/run_submission.py 0 --seed 12345 --num_runs 2
--- The CXX compiler identification is GNU 13.3.0
--- Detecting CXX compiler ABI info
--- Detecting CXX compiler ABI info - done
--- Check for working CXX compiler: /usr/bin/c++ - skipped
--- Detecting CXX compile features
--- Detecting CXX compile features - done
+(virtualenv) $ python ./harness/run_submission.py 0 --seed 12345 --num_runs 3
+[get_openfhe] Found OpenFHE installed at /usr/local/lib/ (use --force to rebuild).
 -- FOUND PACKAGE OpenFHE
 -- OpenFHE Version: 1.3.0
 -- OpenFHE installed as shared libraries: ON
 -- OpenFHE include files location: /usr/local/include/openfhe
 -- OpenFHE lib files location: /usr/local/lib
 -- OpenFHE Native Backend size: 64
--- Configuring done (0.7s)
+-- Configuring done (0.0s)
 -- Generating done (0.0s)
--- Build files have been written to: [...]/fetch-by-similarity/submission/build
-[  4%] Building CXX object CMakeFiles/client_encode_encrypt_db.dir/src/client_encode_encrypt_db.cpp.o
-[...]
-[100%] Built target client_encode_encrypt_db
+-- Build files have been written to: /home/shaih/fhe-benchmarking/fetch-by-similarity/submission/build
+[  8%] Built target client_preprocess_dataset
+[ 17%] Built target client_preprocess_query
+[ 26%] Built target server_preprocess_dataset
+[ 34%] Built target client_encode_encrypt_query
+[ 43%] Built target client_decrypt_decode
+[ 56%] Built target client_postprocess
+[ 78%] Built target client_encode_encrypt_db
+[ 82%] Built target server_encrypted_compute
+[100%] Built target client_key_generation
 
 [harness] Running submission for toy dataset
           returning matching payloads
-23:23:38 [harness] 1: Dataset generation completed (elapsed: 0.1021s)
-23:23:38 [harness] 2: Dataset preprocessing completed (elapsed: 0.0023s)
-23:23:38 [harness] 3: Key Generation completed (elapsed: 0.1167s)
-23:23:39 [harness] 4: Dataset encoding and encryption completed (elapsed: 1.0903s)
+15:09:51 [harness] 1: Dataset generation completed (elapsed: 0.1694s)
+15:09:51 [harness] 2: Dataset preprocessing completed (elapsed: 0.0034s)
+15:09:52 [harness] 3: Key Generation completed (elapsed: 0.1846s)
          [harness] Public and evaluation keys size: 30.3M
+15:09:59 [harness] 4: Dataset encoding and encryption completed (elapsed: 7.7825s)
          [harness] Encrypted database size: 90.3M
-23:23:39 [harness] 5: Encrypted dataset preprocessing completed (elapsed: 0.0051s)
+15:09:59 [harness] 5: Encrypted dataset preprocessing completed (elapsed: 0.0069s)
 
-         [harness] Run 1 of 2
-23:23:40 [harness] 6: Query generation completed (elapsed: 0.096s)
-23:23:40 [harness] 7: Query preprocessing completed (elapsed: 0.0022s)
-23:23:40 [harness] 8: Query encryption completed (elapsed: 0.0164s)
+         [harness] Run 1 of 3
+15:10:00 [harness] 6: Query generation completed (elapsed: 0.171s)
+15:10:00 [harness] 7: Query preprocessing completed (elapsed: 0.0031s)
+15:10:00 [harness] 8: Query encryption completed (elapsed: 0.05s)
          [harness] Encrypted query size: 389.1K
-23:23:40 [server] 0: Loading keys completed
-23:23:43 [server] 1: Matrix-vector product completed (elapsed 3s)
-23:23:43 [server] 2: Compare to threshold completed
-23:23:43 [server] 3: Running sums completed
-23:23:45 [server] 4: Output compression completed (elapsed 1s)
-23:23:45 [harness] 9: Encrypted computation completed (elapsed: 5.4183s)
-23:23:45 [harness] 10: Result decryption and postprocessing completed (elapsed: 0.0201s)
+15:10:00 [server] 0: Loading keys completed
+15:10:50 [server] 1: Matrix-vector product completed (elapsed 50s)
+15:11:01 [server] 2: Compare to threshold completed (elapsed 10s)
+15:11:02 [server] 3: Running sums completed (elapsed 1s)
+15:11:05 [server] 4: Output compression completed (elapsed 3s)
+15:11:05 [harness] 9: Encrypted computation completed (elapsed: 65.2099s)
+15:11:05 [harness] 10: Result decryption and postprocessing completed (elapsed: 0.032s)
          [harness] PASS (All 18 payload vectors match)
-[total latency] 6.8694s
+         [submission] Encrypted computation: 65s
+         [submission] Total: 65s
+[total latency] 73.6127s
 
-         [harness] Run 2 of 2
-23:23:45 [harness] 6: Query generation completed (elapsed: 0.4324s)
-23:23:45 [harness] 7: Query preprocessing completed (elapsed: 0.0033s)
-23:23:46 [harness] 8: Query encryption completed (elapsed: 0.035s)
+         [harness] Run 2 of 3
+15:11:05 [harness] 6: Query generation completed (elapsed: 0.5718s)
+15:11:05 [harness] 7: Query preprocessing completed (elapsed: 0.0048s)
+15:11:06 [harness] 8: Query encryption completed (elapsed: 0.1002s)
          [harness] Encrypted query size: 389.1K
-23:23:46 [server] 0: Loading keys completed
-23:23:53 [server] 1: Matrix-vector product completed (elapsed 7s)
-23:23:53 [server] 2: Compare to threshold completed
-23:23:53 [server] 3: Running sums completed
-23:23:55 [server] 4: Output compression completed (elapsed 1s)
-23:23:55 [harness] 9: Encrypted computation completed (elapsed: 9.5139s)
-23:23:55 [harness] 10: Result decryption and postprocessing completed (elapsed: 0.0198s)
+15:11:06 [server] 0: Loading keys completed
+15:11:46 [server] 1: Matrix-vector product completed (elapsed 40s)
+15:11:49 [server] 2: Compare to threshold completed (elapsed 3s)
+15:11:50 [server] 3: Running sums completed
+15:11:53 [server] 4: Output compression completed (elapsed 3s)
+15:11:53 [harness] 9: Encrypted computation completed (elapsed: 47.4987s)
+15:11:53 [harness] 10: Result decryption and postprocessing completed (elapsed: 0.0219s)
          [harness] PASS (All 11 payload vectors match)
-[total latency] 11.3208s
+         [submission] Encrypted computation: 47s
+         [submission] Total: 47s
+[total latency] 56.3442s
+
+         [harness] Run 3 of 3
+15:11:54 [harness] 6: Query generation completed (elapsed: 0.4939s)
+15:11:54 [harness] 7: Query preprocessing completed (elapsed: 0.0038s)
+15:11:54 [harness] 8: Query encryption completed (elapsed: 0.1137s)
+         [harness] Encrypted query size: 389.1K
+15:11:54 [server] 0: Loading keys completed
+15:12:36 [server] 1: Matrix-vector product completed (elapsed 42s)
+15:12:40 [server] 2: Compare to threshold completed (elapsed 4s)
+15:12:41 [server] 3: Running sums completed
+15:12:45 [server] 4: Output compression completed (elapsed 3s)
+15:12:45 [harness] 9: Encrypted computation completed (elapsed: 51.3689s)
+15:12:45 [harness] 10: Result decryption and postprocessing completed (elapsed: 0.0207s)
+         [harness] PASS (All 0 payload vectors match)
+         [submission] Encrypted computation: 51s
+         [submission] Total: 51s
+[total latency] 60.1478s
 
 All steps completed for the toy dataset!
 ```

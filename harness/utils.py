@@ -111,10 +111,11 @@ def log_size(path: Path, object_name: str, flag: bool = False, previous: int = 0
 
 def human_readable_size(n: int):
     """Pretty print for size in bytes"""
+    n_float : float = n
     for unit in ["B","K","M","G","T"]:
-        if n < 1024:
-            return f"{n:.1f}{unit}"
-        n_float = n /1024
+        if n_float < 1024:
+            return f"{n_float:.1f}{unit}"
+        n_float /= 1024
     return f"{n_float:.1f}P"
 
 def save_run(path: Path, submission_report_path: Path):

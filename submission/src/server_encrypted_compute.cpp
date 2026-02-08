@@ -109,6 +109,8 @@ int main(int argc, char* argv[]) {
 
   InstanceParams prms(size);
   constexpr double threshold = 0.8;
+  auto timing_fname = prms.iodir()/"server_reported_steps.json";
+  auto start_server = std::chrono::system_clock::now();
 
   // Read the crypto context and the public key from disk
   CryptoContext<DCRTPoly> cc;
@@ -148,6 +150,8 @@ int main(int argc, char* argv[]) {
   }
   log_step(0, "Loading keys");
 
+  auto start_computing = std::chrono::system_clock::now();
+
   // Matrix-vector multiplication, reading the encrypted matrix one
   // ciphertexe at a time from encdir
   auto result = mat_vec_mult(prms.encdir(), eqry, prms);
@@ -180,6 +184,12 @@ int main(int argc, char* argv[]) {
 #ifdef DEBUG
     printCts({result[0]}, " summed match vector:");
 #endif
+    auto now = std::chrono::system_clock::now();
+    int64_t comp_s = std::chrono::duration_cast<std::chrono::seconds>(
+      now - start_computing).count();
+    int64_t total_s = std::chrono::duration_cast<std::chrono::seconds>(
+      now - start_server).count();
+    store_server_time(timing_fname, comp_s, total_s);
 
     std::string out_fname = prms.encdir()/"results.bin";
     if (!Serial::SerializeToFile(out_fname, result[0], SerType::BINARY)) {
@@ -326,6 +336,14 @@ int main(int argc, char* argv[]) {
     }
   }
   log_step(4, "Output compression");
+
+  // Report the server-side overall computation time
+  auto now = std::chrono::system_clock::now();
+  int64_t comp_s = std::chrono::duration_cast<std::chrono::seconds>(
+    now - start_computing).count();
+  int64_t total_s = std::chrono::duration_cast<std::chrono::seconds>(
+    now - start_server).count();
+  store_server_time(timing_fname, comp_s, total_s);
 
   // Store the accumulated result back to disk
   std::string out_fname = prms.encdir()/"results.bin";

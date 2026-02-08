@@ -6,7 +6,7 @@ As part of the benchmarking process, all remote backends are expected to make th
 
 This document provides a static description of the homomorphic encryption parameters used by this example backend, along with a minimal execution trace to illustrate end-to-end operation.
 
-Additional details regarding workload structure, level consumption, scale management, parameterization at higher security levels and performance characteristics are described separately in **`README_Lattica_submission.md`**.
+Additional details that can be provided include things like workload structure, level consumption, scale management, parameterization at higher security levels and performance characteristics. You can see an example of such details (for the Lattica submission) at [README_Lattica_submission.md](https://github.com/Lattica-ai/fetch-by-similarity/blob/public_submission/submission_remote/docs/README_Lattica_submission.md).
 
 ---
 

@@ -109,12 +109,26 @@ std::vector<std::vector<std::vector<double> > > transpose_matrix(
   return transposed;  // return the encoded matrix
 }
 
+/// Store the accumulated time in a JSON file
+inline void store_server_time(std::filesystem::path fname, int64_t compute, int64_t total) {
+  std::ofstream file(fname);
+  if (file.is_open()) {
+    file << "{\n";
+    file << "  \"Encrypted computation\": " << compute << ',' << std::endl;
+    file << "  \"Total\": " << total << std::endl;
+    file << "}\n";
+    file.close();
+  } else {
+    std::cerr << "Unable to open file " << fname << std::endl;
+  }
+}
+
 #include <chrono>
 #include <iomanip>
 #include <sstream>
-/// Returns the current time in the format H:M:S, and also duration
-/// since last call in seconds (or 0 if this is the first call).
-inline std::tuple<std::string,int64_t> getCurrentTimeFormatted() {
+/// Returns the current time in the format H:M:S, and also duration since
+/// last call in seconds (or 0 if this is the first call, or reset==true).
+inline std::tuple<std::string,int64_t> getCurrentTimeFormatted(bool reset=false) {
     using namespace std::chrono;
     static std::chrono::system_clock::time_point previous;
     auto now = system_clock::now();
@@ -126,7 +140,7 @@ inline std::tuple<std::string,int64_t> getCurrentTimeFormatted() {
 
     // If not the 1st call, also print duration
     int64_t n_seconds = 0;
-    if (previous != system_clock::time_point{}) {
+    if (!reset && previous != system_clock::time_point{}) {
       // Compute the duration between now and previous and report it
       n_seconds = duration_cast<seconds>(now - previous).count();
     }
