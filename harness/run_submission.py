@@ -36,7 +36,7 @@ def main():
     remote_be = args.remote
 
     # Use params.py to get instance parameters
-    params = InstanceParams(size)
+    params = InstanceParams(size, args.count_only)
 
 
     # Ensure the required directories exist
@@ -50,7 +50,7 @@ def main():
     harness_dir = params.rootdir/"harness"
     exec_dir = params.rootdir/ ("submission_remote/src" if remote_be else "submission")
 
-    print(f"\n[harness] Running submission for {instance_name(size)} dataset")
+    print(f"\n[harness] Running submission for {instance_name(size,args.count_only)} dataset")
     if args.count_only:
         print("          only counting matches")
     else:
@@ -174,7 +174,7 @@ def main():
         submission_report_path = io_dir / "server_reported_steps.json"
         utils.save_run(run_path, submission_report_path)
 
-    print(f"\nAll steps completed for the {instance_name(size)} dataset!")
+    print(f"\nAll steps completed for the {instance_name(size,args.count_only)} dataset!")
 
 if __name__ == "__main__":
     main()

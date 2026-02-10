@@ -15,12 +15,15 @@ SMALL = 1
 MEDIUM = 2
 LARGE = 3
 
-def instance_name(size):
+def instance_name(size, count_only):
     """Return the string name of the instance size."""
     if size > LARGE:
         return "unknown"
-    names = ["toy", "small", "medium", "large"]
-    return names[size]
+    names: list[str] = ["toy", "small", "medium", "large"]
+    if count_only:
+        return "count_" + names[size]
+    else:
+        return names[size]
 
 # The payloads are vectors of 7 int16 numbers in the range [0,4095)
 PAYLOAD_DIM = 7
@@ -28,9 +31,10 @@ PAYLOAD_DIM = 7
 class InstanceParams:
     """Parameters that differ for different instance sizes."""
 
-    def __init__(self, size, rootdir=None):
+    def __init__(self, size, count_only=False, rootdir=None):
         """Constructor."""
         self.size = size
+        self.count_only = count_only
         self.rootdir = Path(rootdir) if rootdir else Path.cwd()
 
         if size > LARGE:
@@ -62,12 +66,14 @@ class InstanceParams:
 
     def datadir(self):
         """Return the dataset directory path."""
-        return self.rootdir / "datasets" / instance_name(self.size)
+        return self.rootdir / "datasets" / instance_name(self.size, False)
+        # Use the same data-directory for count_only and fetch
 
     def iodir(self):
         """Return the I/O directory path."""
-        return self.rootdir / "io" / instance_name(self.size)
+        return self.rootdir / "io" / instance_name(self.size, False)
+        # Use the same I/O-directory for count_only and fetch
 
     def measuredir(self):
         """Return the measurements directory path."""
-        return self.rootdir / "measurements" / instance_name(self.size)
+        return self.rootdir / "measurements" / instance_name(self.size, self.count_only)
