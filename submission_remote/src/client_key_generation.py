@@ -3,7 +3,6 @@ client_key_generation.py - Generate and save FHE keys
 """
 import pickle
 import sys
-from lattica_query.lattica_query_client import QueryClient
 import lattica_query.query_toolkit as toolkit_interface
 import submission_utils
 
