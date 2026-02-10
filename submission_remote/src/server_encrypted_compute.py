@@ -7,7 +7,7 @@ import sys
 from lattica_query import performance_utils
 import submission_utils
 
-local_file_paths, _ = submission_utils.init(sys.argv, mute_logs=False)
+local_file_paths, _ = submission_utils.init(sys.argv)
 # Load encrypted query from step 8
 ct = pickle.load(open(local_file_paths.get_ct_upload_path("query"), "rb"))
 
