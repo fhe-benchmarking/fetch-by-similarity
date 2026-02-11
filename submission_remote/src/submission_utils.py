@@ -28,7 +28,7 @@ class InstanceParams(HarnessInstanceParams):
         self.n_slots = 2**9 if self.size == 0 else 2**15
         self.n_cols  = self.n_slots // 64
         self.count_only = len(argv) > 2 and argv[2] == "--count_only"
-        self.name = instance_name(self.size)
+        self.name = instance_name(self.size, self.count_only)
         self.payload_dim = PAYLOAD_DIM
 
 class LocalFilePaths:
