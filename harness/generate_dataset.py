@@ -49,7 +49,7 @@ def generate_db_points(n_records: int, n_centers: int, dim: int) -> tuple:
 
 def generate_payloads(n_records: int) -> np.ndarray:
     """
-    Generate random payload vectors with int16 values in range [0, 4095).
+    Generate random payload vectors with int16 values in range [0, 512).
     
     Args:
         n_records: Number of payload records to generate
@@ -58,7 +58,7 @@ def generate_payloads(n_records: int) -> np.ndarray:
         Array of shape (n_records, PAYLOAD_DIM=7) with the payload vectors
     """
     rng = np.random.default_rng()
-    return rng.integers(low=0, high=4096,
+    return rng.integers(low=0, high=512,
                         size=(n_records, PAYLOAD_DIM), dtype=np.int16)
 
 
