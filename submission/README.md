@@ -6,7 +6,7 @@ The reference implementation uses CKKS over a ring of dimension 2^16=65,536 (whi
 The entire fetch-by-similarity procedure consumes 22 levels, so we need at least a 23-level modulus chain.
 This yields a ciphertext modulus of just under 1500 bits.
 According to Table 5.2 of [Bossuat et al., 2024](https://cic.iacr.org/p/1/4/26), this combination provides more than 128 bits of security.
-(According to thatr table, the largest modulus that provides 128-bit security with N=2^16 has 1747 bits.)
+(According to that table, the largest modulus that provides 128-bit security with N=2^16 has 1747 bits.)
 
 Specifically, the `CCParams` structure of OpenFHE that we use for this procedure is as follows:
 ```
