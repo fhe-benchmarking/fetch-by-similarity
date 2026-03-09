@@ -8,6 +8,7 @@ import os
 PAYLOAD_PRECISION = 16
 PAYLOAD_MAX = 512
 
+
 def init(argv, mute_logs=True):
     if mute_logs:
         devnull_fd = os.open(os.devnull, os.O_WRONLY)
