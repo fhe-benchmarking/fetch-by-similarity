@@ -25,7 +25,7 @@ db = torch.from_numpy(db)
 payloads = np.fromfile(local_file_paths.PAYLOAD_PATH, dtype=np.int16)
 payloads = payloads.reshape((db_size, payload_dim))
 
-# Add marker value (8192) to each payload to make it 8 int16 values
+# Add marker value (2*PAYLOAD_MAX=1024) to each payload to make it 8 int16 values
 marker = np.full((db_size, 1), 2 * PAYLOAD_MAX, dtype=np.int16)
 extended_payloads = np.concatenate([marker, payloads], axis=1)
 extended_payloads = extended_payloads / PAYLOAD_PRECISION
