@@ -6,7 +6,7 @@ import sys
 import numpy as np
 import torch
 
-from submission_utils import PRECISION, MARKER_VALUE
+from submission_utils import PAYLOAD_MAX, PAYLOAD_PRECISION
 import submission_utils
 
 local_file_paths, instance_params = submission_utils.init(sys.argv)
@@ -25,10 +25,10 @@ db = torch.from_numpy(db)
 payloads = np.fromfile(local_file_paths.PAYLOAD_PATH, dtype=np.int16)
 payloads = payloads.reshape((db_size, payload_dim))
 
-# Add marker value (8192) to each payload to make it 8 int16 values
-marker = np.full((db_size, 1), MARKER_VALUE, dtype=np.int16)
+# Add marker value (2*PAYLOAD_MAX=1024) to each payload to make it 8 int16 values
+marker = np.full((db_size, 1), 2 * PAYLOAD_MAX, dtype=np.int16)
 extended_payloads = np.concatenate([marker, payloads], axis=1)
-extended_payloads = extended_payloads / PRECISION
+extended_payloads = extended_payloads / PAYLOAD_PRECISION
 payload = torch.from_numpy(extended_payloads)
 
 # Save

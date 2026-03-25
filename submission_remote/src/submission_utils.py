@@ -3,12 +3,11 @@ import pickle
 from lattica_query.lattica_query_client import QueryClient
 from harness.params import InstanceParams as HarnessInstanceParams, instance_name, PAYLOAD_DIM
 import os
-import io
 
 # constants used in pre and post processing
-PRECISION = 16
-MARKER_VALUE = 8192
-MAX_VAL = 256
+PAYLOAD_PRECISION = 16
+PAYLOAD_MAX = 512
+
 
 def init(argv, mute_logs=True):
     if mute_logs:
