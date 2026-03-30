@@ -111,6 +111,7 @@ int main(int argc, char* argv[]) {
   constexpr double threshold = 0.8;
   auto timing_fname = prms.iodir()/"server_reported_steps.json";
   auto start_server = std::chrono::system_clock::now();
+  std::filesystem::create_directories(prms.downdir());
 
   // Read the crypto context and the public key from disk
   CryptoContext<DCRTPoly> cc;
@@ -142,7 +143,7 @@ int main(int argc, char* argv[]) {
   }
 
   // Read the query vector from disk
-  auto q_fname = prms.encdir()/"query.bin";
+  auto q_fname = prms.updir()/"query.bin";
   Ciphertext<DCRTPoly> eqry;
   if (!Serial::DeserializeFromFile(q_fname,eqry,SerType::BINARY)){
     throw std::runtime_error(
@@ -153,8 +154,8 @@ int main(int argc, char* argv[]) {
   auto start_computing = std::chrono::system_clock::now();
 
   // Matrix-vector multiplication, reading the encrypted matrix one
-  // ciphertexe at a time from encdir
-  auto result = mat_vec_mult(prms.encdir(), eqry, prms);
+  // ciphertexe at a time from updir
+  auto result = mat_vec_mult(prms.updir(), eqry, prms);
   log_step(1, "Matrix-vector product");
 
   // Compare each slot in the results ctxts to the threshold, using a
@@ -191,7 +192,7 @@ int main(int argc, char* argv[]) {
       now - start_server).count();
     store_server_time(timing_fname, comp_s, total_s);
 
-    std::string out_fname = prms.encdir()/"results.bin";
+    std::string out_fname = prms.downdir()/"results.bin";
     if (!Serial::SerializeToFile(out_fname, result[0], SerType::BINARY)) {
       throw std::runtime_error("Failed to write ciphertext to " + out_fname);
     }
@@ -285,7 +286,7 @@ int main(int argc, char* argv[]) {
       // per column, then rotate by j*N_COLS to put that value in the next
       // available slot in its column.
       for (size_t k = 0; k < indicator.size(); k++) {
-        auto payload_part = get_encrypted_payload(prms.encdir(), k, j);
+        auto payload_part = get_encrypted_payload(prms.updir(), k, j);
         // jth row in the k'th matrix
 
         payload_part = cc->EvalMult(payload_part, indicator[k]);
@@ -346,7 +347,7 @@ int main(int argc, char* argv[]) {
   store_server_time(timing_fname, comp_s, total_s);
 
   // Store the accumulated result back to disk
-  std::string out_fname = prms.encdir()/"results.bin";
+  std::string out_fname = prms.downdir()/"results.bin";
   if (!Serial::SerializeToFile(out_fname, accumulator, SerType::BINARY)) {
     throw std::runtime_error("Failed to write ciphertext to " + out_fname);
   }
@@ -384,7 +385,7 @@ std::vector<Ciphertext<DCRTPoly>> mat_vec_mult(fs::path encdir,
       std::stringstream ssj;
       ssj << std::setw(4) << std::setfill('0') << j;
 
-      auto ct_fname = prms.encdir() / 
+      auto ct_fname = encdir /
           ("batch" + ssj.str()) / ("row_" + ssi.str() + ".bin");
       Ciphertext<DCRTPoly> ct = get_ctxt(ct_fname);
       ct = cc->EvalMultNoRelin(ct, ct_i);

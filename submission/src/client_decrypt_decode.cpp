@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
 
   // Read the encrypted answer from disk
   Ciphertext<DCRTPoly> eres;
-  auto res_file = prms.encdir()/"results.bin";
+  auto res_file = prms.downdir()/"results.bin";
   if (!Serial::DeserializeFromFile(res_file, eres, SerType::BINARY)) {
     throw std::runtime_error("failed to read answer from "+res_file.string());
   }

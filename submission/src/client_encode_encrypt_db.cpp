@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
   for (int i = 0; i < prms.getNCtxts(); i++) {  // go over the batches
     std::stringstream ssi;
     ssi << std::setw(4) << std::setfill('0') << i;
-    auto dir = prms.encdir() / ("batch" + ssi.str());
+    auto dir = prms.updir() / ("batch" + ssi.str());
     // Create the batch directory and any parent directory as needed
     std::filesystem::create_directories(dir);
 
