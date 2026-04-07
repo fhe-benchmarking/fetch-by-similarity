@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
   }
   auto pt = cc->MakeCKKSPackedPlaintext(slots);
   auto eqry = cc->Encrypt(pk, pt);  // the encrypted query vector at top level
-  auto q_file = prms.encdir()/"query.bin";
+  auto q_file = prms.updir()/"query.bin";
   if (!Serial::SerializeToFile(q_file, eqry, SerType::BINARY)) {
       throw std::runtime_error("failed to write query to "+q_file.string());
   }

@@ -129,7 +129,8 @@ public:
     //  ├─io/         # Directory to hold the I/O between client & server parts
     //    ├─ toy/       # The reference implementation has subdirectories
     //       ├─ keys/       # holds the keys
-    //       └─ encrypted/  # holds the ciphertexts (split into subdirectories)
+    //       ├─ ciphertexts_upload/  # holds the ciphertexts to be uploaded to the server
+    //       └─ ciphertexts_download/  # holds the ciphertexts to be downloaded from the server    
     //    ├─ small/
     //       …
     //    ├─ medium/
@@ -140,7 +141,8 @@ public:
     fs::path rtdir() const  { return rootdir; }
     fs::path iodir() const  { return rootdir/"io"/instance_name(size); }
     fs::path keydir() const { return iodir() / "keys"; }
-    fs::path encdir() const { return iodir() / "encrypted"; }
+    fs::path updir() const { return iodir() / "ciphertexts_upload"; }
+    fs::path downdir() const { return iodir() / "ciphertexts_download"; }
     fs::path datadir() const { 
         return rootdir/"datasets"/instance_name(size);
     }

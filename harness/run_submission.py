@@ -111,7 +111,7 @@ def main():
     utils.log_step(4, "Dataset encoding and encryption")
 
     # Report size of encrypted data
-    utils.log_size(io_dir / "encrypted", "Encrypted database")
+    utils.log_size(io_dir / "ciphertexts_upload", "Encrypted database")
 
     # 4.1 Communication: Upload encrypted database
     if remote_be:
@@ -143,12 +143,12 @@ def main():
         # 8. Client-side: Encrypt the query
         utils.run_exe_or_python(exec_dir, "client_encode_encrypt_query", *this_query_args)
         utils.log_step(8, "Query encryption")
-        utils.log_size(io_dir / "encrypted" / "query.bin" , "Encrypted query")
+        utils.log_size(io_dir / "ciphertexts_upload" / "query.bin" , "Encrypted query")
 
         # 9. Server-side: run server_encrypted_compute
         utils.run_exe_or_python(exec_dir, "server_encrypted_compute", *this_query_args)
         utils.log_step(9, "Encrypted computation")
-
+        utils.log_size(io_dir / "ciphertexts_download" / "results.bin" , "Encrypted results")
 
         # 10. Client-side: decrypt and postprocess
         utils.run_exe_or_python(exec_dir, "client_decrypt_decode", *this_query_args)

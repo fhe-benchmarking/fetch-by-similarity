@@ -41,7 +41,7 @@ def build_submission(script_dir: Path, remote_be: bool):
     Build the submission, including pulling dependencies as neeed
     """
     if remote_be:
-        subprocess.run(["pip", "install", "-r", "./submission_remote/requirements.txt"], check=True)
+        subprocess.run([sys.executable, "-m", "pip", "install", "-r", "./submission_remote/requirements.txt"], check=True)
     else:
         # Clone and build OpenFHE if needed
         subprocess.run([script_dir/"get_openfhe.sh"], check=True)
@@ -153,7 +153,7 @@ def run_exe_or_python(base, file_name, *args, check=True):
 
     if py.exists():
         env["PYTHONPATH"] = "."
-        cmd = ["python3", py, *args]
+        cmd = [sys.executable, py, *args]
     elif exe.exists():
         cmd = [exe, *args]
     else:

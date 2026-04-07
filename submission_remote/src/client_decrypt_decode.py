@@ -8,7 +8,7 @@ import submission_utils
 
 local_file_paths, _ = submission_utils.init(sys.argv)
 
-ct_res     = pickle.load(open(local_file_paths.get_ct_download_path("query"), "rb"))
+ct_res     = pickle.load(open(local_file_paths.get_ct_download_path("results"), "rb"))
 context    = pickle.load(open(local_file_paths.PATH_CONTEXT, "rb"))
 secret_key = pickle.load(open(local_file_paths.PATH_SK, "rb"))
 

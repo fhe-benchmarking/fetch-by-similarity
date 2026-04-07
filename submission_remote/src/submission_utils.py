@@ -47,7 +47,7 @@ class LocalFilePaths:
         self.PATH_ACCESS_TOKEN      = IO_DIR / "access_token.pkl"
         self.PATH_SK                = IO_DIR / "sk.pkl"
         self.PK_DIR                 = IO_DIR / "keys"
-        self.CT_UPLOAD_DIR          = IO_DIR / "encrypted"
+        self.CT_UPLOAD_DIR          = IO_DIR / "ciphertexts_upload"
         self.CT_DOWNLOAD_DIR        = IO_DIR / "ciphertexts_download"
         self.PATH_RAW_RESULT        = IO_DIR / "raw_result.pkl"
         self.PREDICTIONS_PATH       = IO_DIR / "results.bin"
