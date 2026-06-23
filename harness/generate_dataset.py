@@ -13,7 +13,7 @@ import argparse
 import numpy as np
 from params import InstanceParams, TOY, LARGE, PAYLOAD_DIM, instance_name
 
-def generate_db_points(n_records: int, n_centers: int, dim: int) -> tuple:
+def generate_db_points(n_records: int, n_centers: int, dim: int, seed=None) -> tuple:
     """
     Generate database points, half as random points and the other half by
     selecting random centers and adding noise.
@@ -22,13 +22,14 @@ def generate_db_points(n_records: int, n_centers: int, dim: int) -> tuple:
         n_records: Number of database records to generate
         n_centers: Number of centers to use
         dim: Dimension of the space
+        seed: Random seed for reproducibility
         
     Returns:
         Tuple containing:
         - Array of shape (n_records, dim) containing the database points
         - Array of shape (n_centers, dim) containing the centers
     """
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(seed)
 
     # Generate centers on the unit sphere
     centers = rng.standard_normal(size=(n_centers, dim), dtype=np.float32)
@@ -47,17 +48,18 @@ def generate_db_points(n_records: int, n_centers: int, dim: int) -> tuple:
 
     return db, centers
 
-def generate_payloads(n_records: int) -> np.ndarray:
+def generate_payloads(n_records: int, seed=None) -> np.ndarray:
     """
     Generate random payload vectors with int16 values in range [0, 512).
     
     Args:
         n_records: Number of payload records to generate
+        seed: Random seed for reproducibility
         
     Returns:
         Array of shape (n_records, PAYLOAD_DIM=7) with the payload vectors
     """
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(seed)
     return rng.integers(low=0, high=512,
                         size=(n_records, PAYLOAD_DIM), dtype=np.int16)
 
@@ -93,8 +95,8 @@ def main():
 
     # Generate database points and centers, and then payloads
     db, centers = generate_db_points(
-        n_records, n_centers, params.get_record_dim())
-    payloads = generate_payloads(n_records)
+        n_records, n_centers, params.get_record_dim(), seed=args.seed)
+    payloads = generate_payloads(n_records, seed=args.seed)
 
     # Write data to files
     db.tofile(dataset_dir / "db.bin")

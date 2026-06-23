@@ -39,7 +39,7 @@ def main():
 
     # Generate a new query: First choose a random vector on the unit sphere in
     # dimension dim, made out of float32
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(args.seed)
     qry = rng.standard_normal(dim, dtype=np.float32)
 
     # With probability 50%, keep the query as the new vector qry.
