@@ -64,7 +64,7 @@ def generate_payloads(n_records: int, seed=None) -> np.ndarray:
                         size=(n_records, PAYLOAD_DIM), dtype=np.int16)
 
 
-def main():
+def main(rootdir=None):
     """
     Generate random centers, database points, and payloads for the fetch-by-similarity benchmark.
     """
@@ -73,9 +73,13 @@ def main():
     parser.add_argument('size', type=int, choices=range(TOY, LARGE+1),
                         help='Dataset size (0-toy/1-small/2-medium/3-large)')
     parser.add_argument('--seed', type=int, help='Random seed for reproducibility')
+    parser.add_argument('--rootdir', type=str,
+                        help='Project root directory for datasets/ output (defaults to current working directory)')
     
     args, _ = parser.parse_known_args()
     size = args.size
+    if args.rootdir is not None:
+        rootdir = args.rootdir
     
     # Set random seed if provided
     if args.seed is not None:
@@ -83,7 +87,7 @@ def main():
         np.random.seed(args.seed)
 
     # Use params.py to get instance parameters
-    params = InstanceParams(size)
+    params = InstanceParams(size, rootdir=rootdir)
     n_records = params.get_db_size()
 
     # Calculate number of centers
